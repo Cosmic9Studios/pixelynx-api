@@ -1,0 +1,27 @@
+image: docker:git
+services:
+  - docker:dind
+
+variables: 
+  REGISTRY: registry.gitlab.com
+  CONTAINER_RELEASE_IMAGE: $REGISTRY/cosmic9studios/assetstore/web:api
+
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - cd api
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
+    - docker build -t $CONTAINER_RELEASE_IMAGE .
+    - docker push $CONTAINER_RELEASE_IMAGE
+
+#deploy:
+#  stage: deploy
+#  script:
+#    - docker pull $CONTAINER_TEST_IMAGE
+#    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+#    - docker push $CONTAINER_RELEASE_IMAGE
+#  only:
+#    - master
