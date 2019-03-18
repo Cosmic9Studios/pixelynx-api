@@ -1,7 +1,6 @@
-
 image: docker:git
-  services:
-    - docker:dind
+services:
+  - docker:dind
 
 variables: 
   REGISTRY: registry.gitlab.com
