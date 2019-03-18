@@ -26,7 +26,7 @@ deploy:
   script:
     - kubectl config set-cluster "$CI_PROJECT_ID" --server="$KUBE_URL" --certificate-authority="$KUBE_CA_PEM_FILE"
     - kubectl config set-credentials "$CI_PROJECT_ID" --token="$KUBE_TOKEN"
-    - kubectl config set-context "$CI_PROJECT_ID" --cluster="$CI_PROJECT_ID" --user="$CI_PROJECT_ID" --namespace="$KUBE_NAMESPACE"
+    - kubectl config set-context "$CI_PROJECT_ID" --cluster="asset-store" --user="$CI_PROJECT_ID" --namespace="$KUBE_NAMESPACE"
     - kubectl config use-context "$CI_PROJECT_ID"
     - kubectl apply -f api/deployment.yaml
 
