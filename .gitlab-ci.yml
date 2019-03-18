@@ -8,6 +8,7 @@ variables:
 
 stages:
   - build
+  - deploy
 
 build:
   stage: build
@@ -16,6 +17,16 @@ build:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
     - docker build -t $CONTAINER_RELEASE_IMAGE .
     - docker push $CONTAINER_RELEASE_IMAGE
+
+deploy: 
+  stage: deploy
+  environment: production
+  script:
+    - kubectl config set-cluster "$CI_PROJECT_ID" --server="$KUBE_URL" --certificate-authority="$KUBE_CA_PEM_FILE"
+    - kubectl config set-credentials "$CI_PROJECT_ID" --token="$KUBE_TOKEN"
+    - kubectl config set-context "$CI_PROJECT_ID" --cluster="$CI_PROJECT_ID" --user="$CI_PROJECT_ID" --namespace="$KUBE_NAMESPACE"
+    - kubectl config use-context "$CI_PROJECT_ID"
+    - kubectl apply -f api/deployment.yaml
 
 #deploy:
 #  stage: deploy
