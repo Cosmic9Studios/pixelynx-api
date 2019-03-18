@@ -19,6 +19,7 @@ build:
     - docker push $CONTAINER_RELEASE_IMAGE
 
 deploy: 
+  image: registry.gitlab.com/gitlab-examples/kubernetes-deploy
   stage: deploy
   environment: production
   script:
