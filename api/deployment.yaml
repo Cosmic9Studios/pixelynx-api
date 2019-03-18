@@ -5,12 +5,12 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: assetstore
+      app: asset-store
   replicas: 1 # tells deployment to run 2 pods matching the template
   template:
     metadata:
       labels:
-        app: assetstore
+        app: asset-store
     spec:
       containers:
       - name: api
