@@ -9,6 +9,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="hotchocolate" Version="0.8.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="0.8.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="0.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
   </ItemGroup>
