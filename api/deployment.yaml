@@ -45,7 +45,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: https://registry.gitlab.com/cosmic9studios/assetstore/web:1.0-api
+        image: registry.gitlab.com/cosmic9studios/assetstore/web:1.0-api
         imagePullPolicy: "Always"
         ports:
         - containerPort: 5000
