@@ -5,8 +5,14 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    certmanager.k8s.io/cluster-issuer: letsencrypt-staging
 spec:
+  tls:
+  - hosts:
+    - cosmic9studios.com
+    secretName: letsencrypt-staging
   rules:
+  - host: cosmic9studios.com
   - http:
       paths:
       - path: /
@@ -14,6 +20,22 @@ spec:
           serviceName: assetstore-svc
           servicePort: 80
 ---
+
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+ name: letsencrypt-staging
+spec:
+ acme:
+   # The ACME server URL
+   server: https://acme-staging-v02.api.letsencrypt.org/directory
+   # Email address used for ACME registration
+   email: phenry@cosmic9studios.com
+   # Name of a secret used to store the ACME account private key
+   privateKeySecretRef:
+     name: letsencrypt-staging
+   # Enable the HTTP-01 challenge provider
+   http01: {}
 
 apiVersion: v1
 kind: Service
