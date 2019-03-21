@@ -18,6 +18,8 @@ build:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
     - docker build -t $CONTAINER_RELEASE_IMAGE .
     - docker push $CONTAINER_RELEASE_IMAGE
+  only: 
+    - master
 
 deploy: 
   image: mcr.microsoft.com/dotnet/core/sdk:2.2
