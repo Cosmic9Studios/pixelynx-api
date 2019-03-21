@@ -21,7 +21,7 @@ metadata:
   name: assetstore-svc
 spec:
   ports:
-  - port: 80
+    - port: 80
     targetPort: 5000
     protocol: TCP
     name: http
@@ -44,12 +44,12 @@ spec:
         app: assetstore
     spec:
       containers:
-      - name: api
-        image: registry.gitlab.com/cosmic9studios/assetstore/web:1.0-api
+        - name: api
+        image: https://registry.gitlab.com/cosmic9studios/assetstore/web:1.0-api
         imagePullPolicy: "Always"
         ports:
-        - containerPort: 5000
+          - containerPort: 5000
       imagePullSecrets:
-      - name: gitlab-auth
+        - name: gitlab-auth
 ---
 
