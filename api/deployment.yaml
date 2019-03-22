@@ -4,6 +4,7 @@ metadata:
   name: assetstore-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /
     certmanager.k8s.io/cluster-issuer: letsencrypt-prod
 spec:
@@ -18,6 +19,7 @@ spec:
       - path: /
         backend:
           serviceName: assetstore-svc
+          servicePort: http
 ---
 
 apiVersion: certmanager.k8s.io/v1alpha1
