@@ -35,7 +35,8 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod
     # Enable the HTTP-01 challenge provider
-    http01: {}
+    http01:
+        ingress: assetstore-ingress
 
 apiVersion: v1
 kind: Service
