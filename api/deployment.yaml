@@ -49,6 +49,7 @@ spec:
     protocol: TCP
     name: http
   - port: 443
+    targetPort: 5000
     protocol: TCP
     name: https
   selector:
