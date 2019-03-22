@@ -7,6 +7,7 @@ metadata:
     kubernetes.io/tls-acme: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /
     certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    certmanager.k8s.io/acme-challenge-type: http01
 spec:
   tls:
     - secretName: letsencrypt-prod
@@ -14,7 +15,7 @@ spec:
   - host: cosmic9studios.com
     http:
       paths:
-      - path: /*
+      - path: /
         backend:
           serviceName: assetstore-svc
           servicePort: 80
