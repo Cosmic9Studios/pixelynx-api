@@ -48,6 +48,9 @@ spec:
     targetPort: 5000
     protocol: TCP
     name: http
+  - port: 443
+    protocol: TCP
+    name: https
   selector:
     app: assetstore
 ---
