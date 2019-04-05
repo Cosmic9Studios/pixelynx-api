@@ -13,5 +13,10 @@ namespace AssetStore.Api.Controllers
         public IActionResult Get() {
             return Ok();
         }
+
+        [HttpGet("health")]
+        public IActionResult Health() {
+            return Ok();
+        }
     }
 }
