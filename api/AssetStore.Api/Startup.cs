@@ -49,9 +49,11 @@ namespace AssetStore.Api
                 app.UseHttpsRedirection();
             }
 
-            app.UseGraphQL()
-               .UseGraphiQL()
-               .UseMvc();
+            app
+                .UseWebSockets()
+                .UseGraphQL()
+                .UseGraphiQL()
+                .UseMvc();
         }
     }
 }
