@@ -9,7 +9,7 @@ stages:
   - deploy
 
 build:
-  image: docker:latest
+  image: docker:git
   services:
   - docker:dind
   stage: build
