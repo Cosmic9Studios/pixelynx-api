@@ -14,7 +14,7 @@ build:
   - docker:dind
   stage: build
   before_script:
-    - apk --update add nodejs
+    - apk add --update nodejs nodejs-npm
     - npm install -g semantic-release@15
   script:
     - cd api
