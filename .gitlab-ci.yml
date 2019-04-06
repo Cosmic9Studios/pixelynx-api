@@ -16,12 +16,12 @@ build:
   before_script:
     - apk add --update nodejs nodejs-npm
     - npm install -g semantic-release@15
-    - npm install @semantic-release/gitlab
+    - npm install -g @semantic-release/gitlab
   script:
     - cd api
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
     - docker build -t $CONTAINER_RELEASE_IMAGE:temp .
-    - npx semantic-release -b $CI_COMMIT_REF_NAME -p '@semantic-release/github'
+    - npx semantic-release -b $CI_COMMIT_REF_NAME -p '@semantic-release/gitlab'
     - docker tag $CONTAINER_RELEASE_IMAGE:temp $CONTAINER_RELEASE_IMAGE:$CI_COMMIT_TAG
     - docker push $CONTAINER_RELEASE_IMAGE:$CI_COMMIT_TAG
 
