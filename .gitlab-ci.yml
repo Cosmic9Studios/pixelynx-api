@@ -15,15 +15,16 @@ build:
   stage: build
   before_script:
     - apk add --update nodejs nodejs-npm
-    - npm install -g semantic-release@15
-    - npm install -g semantic-release-docker
+    - npm install -g semantic-release@15 @semantic-release/exec @semantic-release/commit-analyzer @semantic-release/release-notes-generator
   script:
     - cd api
     - export DOCKER_USERNAME=gitlab-ci-token
     - export DOCKER_PASSWORD=$CI_BUILD_TOKEN
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY
+    - docker login -u $DOCKER_USERNAME -p $PASSWORD $REGISTRY
     - docker build -t $CONTAINER_RELEASE_IMAGE .
-    - npx semantic-release -b $CI_COMMIT_REF_NAME -p 'semantic-release-docker'
+    - npx semantic-release -b $CI_COMMIT_REF_NAME
+
+
 
 deploy: 
   image: mcr.microsoft.com/dotnet/core/sdk:2.2

@@ -1,10 +1,9 @@
 {
-  "release": {
-    "verifyConditions": {
-      "registryUrl": "registry.gitlab.com"
-    },
-    "publish": {
-      "name": "registry.gitlab.com/cosmic9studios/assetstore/web"
-    }
-  }
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/exec", {
+      "publishCmd": "./publish.sh ${nextRelease.version}"
+    }],
+  ]
 }
