@@ -20,6 +20,7 @@ build:
     - cd api
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
     - docker build -t $CONTAINER_RELEASE_IMAGE:latest .
+    - cd ..
     - npx semantic-release -b $CI_COMMIT_REF_NAME
 
 deploy: 
