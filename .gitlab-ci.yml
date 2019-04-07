@@ -2,7 +2,7 @@
 
 variables: 
   REGISTRY: registry.gitlab.com
-  CONTAINER_RELEASE_IMAGE: $REGISTRY/cosmic9studios/assetstore/web:latest
+  CONTAINER_RELEASE_IMAGE: $REGISTRY/cosmic9studios/assetstore/web
 
 stages:
   - build
@@ -19,7 +19,7 @@ build:
   script:
     - cd api
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
-    - docker build -t $CONTAINER_RELEASE_IMAGE .
+    - docker build -t $CONTAINER_RELEASE_IMAGE:latest .
     - npx semantic-release -b $CI_COMMIT_REF_NAME
 
 deploy: 
