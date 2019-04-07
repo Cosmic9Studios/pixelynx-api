@@ -1,0 +1,10 @@
+{
+  "release": {
+    "verifyConditions": {
+      "registryUrl": "registry.gitlab.com"
+    },
+    "publish": {
+      "name": "registry.gitlab.com/cosmic9studios/assetstore/web"
+    }
+  }
+}
