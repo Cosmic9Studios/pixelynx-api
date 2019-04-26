@@ -2,7 +2,7 @@
 
 variables: 
   REGISTRY: registry.gitlab.com
-  CONTAINER_RELEASE_IMAGE: $REGISTRY/cosmic9studios/assetstore/web
+  CONTAINER_RELEASE_IMAGE: $REGISTRY/cosmic9studios/assetstore/api
 
 stages:
   - build
