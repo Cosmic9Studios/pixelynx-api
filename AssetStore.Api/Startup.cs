@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using AssetStore.Api.Types;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,11 +32,15 @@ namespace AssetStore.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddGraphQL(c => c.RegisterQueryType<QueryType>());
-
-            services.AddMvc()
-                    .AddApplicationPart(typeof(Startup).Assembly);
+            services.AddGraphQL(sp => Schema.Create(c =>
+            {
+                c.RegisterServiceProvider(sp);
+                c.RegisterQueryType<QueryType>();
+            }),
+            new QueryExecutionOptions
+            {
+                TracingPreference = TracingPreference.Always
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,16 +50,12 @@ namespace AssetStore.Api
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseHsts();
-                app.UseHttpsRedirection();
-            }
 
-            app
-                .UseGraphQL()
-                .UseGraphiQL()
-                .UseMvc();
+            app.UseWebSockets();
+            app.UseGraphQL();
+            app.UseGraphiQL();
+            app.UseVoyager();
+            app.UsePlayground();
         }
     }
 }
