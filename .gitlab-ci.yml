@@ -22,6 +22,8 @@ build:
     - docker build -t $CONTAINER_RELEASE_IMAGE:latest .
     - cd ..
     - npx semantic-release -b $CI_COMMIT_REF_NAME
+  except: 
+    - tags
 
 deploy: 
   image: mcr.microsoft.com/dotnet/core/sdk:2.2
