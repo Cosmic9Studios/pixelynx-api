@@ -24,4 +24,8 @@
     <ProjectReference Include="..\AssetStore.Business\AssetStore.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Update="temp.pfx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
