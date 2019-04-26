@@ -15,7 +15,7 @@ build:
   stage: build
   before_script:
     - apk add --update nodejs nodejs-npm
-    - npm install -g semantic-release@15 @semantic-release/exec @semantic-release/commit-analyzer @semantic-release/release-notes-generator
+    - npm install -g semantic-release@15 @semantic-release/exec @semantic-release/commit-analyzer @semantic-release/gitlab
   script:
     - cd api
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY

@@ -1,9 +1,9 @@
 {
   "plugins": [
     "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
+    "@semantic-release/gitlab",
     ["@semantic-release/exec", {
-      "publishCmd": "ls && ./publish.sh ${nextRelease.version}"
+      "publishCmd": "./publish.sh ${nextRelease.version}"
     }],
   ]
 }

@@ -50,7 +50,6 @@ namespace AssetStore.Api
             }
 
             app
-                .UseWebSockets()
                 .UseGraphQL()
                 .UseGraphiQL()
                 .UseMvc();
