@@ -19,7 +19,7 @@ build:
   script:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
     - docker build -t $CONTAINER_RELEASE_IMAGE:latest .
-    - npx semantic-release -b $CI_COMMIT_REF_NAME
+    - npx semantic-release -b $CI_COMMIT_REF_NAME -r https://gitlab.com/cosmic9studios/assetstore/api.git
   except: 
     - tags
   only: 
@@ -45,3 +45,5 @@ deploy:
     - pulumi up -y
   only: 
     - tags
+
+    8yfGSDQ24ommEB5jy2
