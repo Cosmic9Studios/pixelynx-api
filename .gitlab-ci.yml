@@ -41,7 +41,7 @@ deploy:
     - pulumi stack select dev
     - pulumi config set version $CI_COMMIT_TAG
     - pulumi config set gitlabUser gitlab-ci-token
-    - pulumi config set gitlabPass $CI_BUILD_TOKEN
+    - pulumi config set --secret gitlabPass $CI_BUILD_TOKEN
     - pulumi up -y
   only: 
     - tags
