@@ -1,3 +1,4 @@
 *.nuget.*
 obj
 bin
+node_modules
