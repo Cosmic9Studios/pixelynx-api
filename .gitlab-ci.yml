@@ -22,25 +22,26 @@ build:
     - npx semantic-release -b $CI_COMMIT_REF_NAME
   except: 
     - tags
-
-deploy: 
-  image: mcr.microsoft.com/dotnet/core/sdk:2.2
-  stage: deploy
-  environment: production
-  script:
-    - dotnet tool install -g Octopus.DotNet.Cli
-    - export PATH="$PATH:/root/.dotnet/tools"
-    - dotnet octo pack --format=zip --id AssetStore.Api --basePath ./api --include=*.yaml
-    - dotnet octo push --package "$(find . -type f -iname '*.zip' -print -quit)" --replace-existing --server https://cosmic9studios.octopus.app --apiKey $OCTO_KEY
-    - dotnet octo create-release --project AssetStore --server https://cosmic9studios.octopus.app/ --apiKey $OCTO_KEY
   only: 
     - master
 
-#deploy:
-#  stage: deploy
-#  script:
-#    - docker pull $CONTAINER_TEST_IMAGE
-#    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
-#    - docker push $CONTAINER_RELEASE_IMAGE
-#  only:
-#    - master
+deploy: 
+  image: 
+    name: pulumi/pulumi
+    entrypoint: [""]
+  stage: deploy
+  environment: production
+  before_script: 
+    - apt-get install -y nodejs
+  script:
+    - cd infra
+    - npm install yarn
+    - yarn install
+    - npx tsc
+    - pulumi config set version $CI_COMMIT_TAG
+    - pulumi config set gitlabUser gitlab-ci-token
+    - pulumi config set gitlabPass $CI_BUILD_TOKEN
+    - pulumi stack select dev
+    - pulumi up -y
+  only: 
+    - tags
