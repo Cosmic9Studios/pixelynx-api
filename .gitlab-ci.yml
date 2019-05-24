@@ -2,7 +2,7 @@
 
 variables: 
   REGISTRY: registry.gitlab.com
-  CONTAINER_RELEASE_IMAGE: $REGISTRY/cosmic9studios/assetstore/web
+  CONTAINER_RELEASE_IMAGE: $REGISTRY/cosmic9studios/assetstore/api
 
 stages:
   - build
@@ -17,11 +17,11 @@ build:
     - apk add --update nodejs nodejs-npm
     - npm install -g semantic-release@15 @semantic-release/exec @semantic-release/commit-analyzer @semantic-release/gitlab
   script:
-    - cd api
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
     - docker build -t $CONTAINER_RELEASE_IMAGE:latest .
-    - cd ..
     - npx semantic-release -b $CI_COMMIT_REF_NAME
+  except: 
+    - tags
 
 deploy: 
   image: mcr.microsoft.com/dotnet/core/sdk:2.2
