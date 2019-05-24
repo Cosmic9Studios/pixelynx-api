@@ -45,5 +45,3 @@ deploy:
     - pulumi up -y
   only: 
     - tags
-
-    8yfGSDQ24ommEB5jy2
