@@ -46,7 +46,7 @@ job "assetstore" {
             }
 
             service {
-                name = "assetstore"
+                name = "assetstore-api"
                 tags = ["urlprefix-/ proto=https tlsskipverify=true"]
 
                 port = "http"

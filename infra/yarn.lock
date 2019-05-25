@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@cosmic9studios/pulumi-nomad@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@cosmic9studios/pulumi-nomad/-/pulumi-nomad-1.1.2.tgz#3ff22c9d9b5cd5831fd9db00e29bd80ae1416d90"
+"@cosmic9studios/pulumi-nomad@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@cosmic9studios/pulumi-nomad/-/pulumi-nomad-1.2.0.tgz#cd20ae706d3e47c8edd72cd5c383ee60c46a74a2"
   dependencies:
     "@pulumi/pulumi" latest
     axios "0.18.0"
@@ -113,7 +113,7 @@
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-2.0.1.tgz#dc488842312a7f075149312905b5e3c0b054c79d"
 
-"@types/node@*":
+"@types/node@*", "@types/node@latest":
   version "12.0.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.2.tgz#3452a24edf9fea138b48fad4a0a028a683da1e40"
 
