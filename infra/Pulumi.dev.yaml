@@ -1,2 +1,5 @@
 config:
+  api:gitlabPass:
+    secure: AAABAC8btH+tsfUwq+hAkMlPuCDIrpKxre8JC6r/9M96pw2NtEQCT0BM8SXKNzlOCUvbvg==
+  api:gitlabUser: gitlab+deploy-token-62851
   api:version: 1.0.8
