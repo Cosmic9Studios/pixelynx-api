@@ -25,6 +25,7 @@ namespace AssetStore.Api
                 {   
                     options.Listen(IPAddress.Any, 5000, listenOptions =>
                     {
+                        // Made with mkcert
                         var cert = new X509Certificate2("temp.pfx", "changeit");
                         listenOptions.UseHttps(cert);
                     });
