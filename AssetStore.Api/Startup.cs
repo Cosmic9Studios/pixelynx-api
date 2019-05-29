@@ -6,6 +6,7 @@ using AssetStore.Api.Types;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.GraphiQL;
+using HotChocolate.AspNetCore.Playground;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
@@ -54,9 +55,9 @@ namespace AssetStore.Api
 
             app.UseWebSockets();
             app.UseGraphQL();
-            app.UseGraphiQL();
+            app.UseGraphiQL(new GraphiQLOptions { EnableSubscription = false });
+            app.UsePlayground(new PlaygroundOptions { EnableSubscription = false });
             app.UseVoyager();
-            app.UsePlayground();
             app.UseMvc();
         }
     }
