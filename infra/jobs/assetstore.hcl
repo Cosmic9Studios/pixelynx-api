@@ -16,12 +16,10 @@ job "assetstore" {
         }
 
         reschedule {
-            attempts       = 15
-            interval       = "1h"
             delay          = "30s"
             delay_function = "exponential"
             max_delay      = "120s"
-            unlimited      = false
+            unlimited      = true
         }
 
         task "run" {
@@ -47,7 +45,7 @@ job "assetstore" {
 
             service {
                 name = "assetstore-api"
-                tags = ["urlprefix-/ proto=https tlsskipverify=true"]
+                tags = ["urlprefix-/api strip=/api proto=https tlsskipverify=true"]
 
                 port = "http"
 

@@ -52,6 +52,7 @@ namespace AssetStore.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseWebSockets();
             app.UseGraphQL();
             app.UseGraphiQL();
             app.UseVoyager();
