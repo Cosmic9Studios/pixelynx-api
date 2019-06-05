@@ -9,13 +9,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="9.0.0-rc.4" />
-    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="9.0.0-rc.4" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="9.0.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="9.0.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="9.0.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
-    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="9.0.0-rc.4" />
-    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="9.0.0-rc.4" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="9.0.0-rc.4" />
   </ItemGroup>
 
   <ItemGroup>

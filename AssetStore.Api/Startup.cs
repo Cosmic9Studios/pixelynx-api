@@ -54,9 +54,9 @@ namespace AssetStore.Api
             }
 
             app.UseWebSockets();
-            app.UseGraphQL();
-            app.UseGraphiQL(new GraphiQLOptions { EnableSubscription = false });
-            app.UsePlayground(new PlaygroundOptions { EnableSubscription = false });
+            app.UseGraphQL("/api/graphql");
+            app.UseGraphiQL(new GraphiQLOptions { QueryPath = "/api/graphql", EnableSubscription = true, Path = "/api/graphiql" });
+            app.UsePlayground(new PlaygroundOptions { QueryPath = "/api/graphql", EnableSubscription = true });
             app.UseVoyager();
             app.UseMvc();
         }

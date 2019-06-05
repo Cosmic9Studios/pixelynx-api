@@ -1,7 +1,7 @@
-job "assetstore" {
+job "assetstore-api" {
     datacenters = [ "dc1" ]
 
-    group "assetstore" {
+    group "assetstore-api" {
 
         count = 1
 
@@ -45,7 +45,7 @@ job "assetstore" {
 
             service {
                 name = "assetstore-api"
-                tags = ["urlprefix-/api strip=/api proto=https tlsskipverify=true"]
+                tags = ["urlprefix-/api proto=https tlsskipverify=true"]
 
                 port = "http"
 
