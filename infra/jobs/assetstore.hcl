@@ -12,7 +12,7 @@ job "assetstore-api" {
 
             # Enable automatically reverting to the last stable job on a failed
             # deployment.
-            auto_revert = true
+            auto_revert = false
         }
 
         reschedule {
