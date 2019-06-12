@@ -45,14 +45,14 @@ job "assetstore-api" {
 
             service {
                 name = "assetstore-api"
-                tags = ["urlprefix-/api proto=https tlsskipverify=true"]
+                tags = ["urlprefix-/api"]
 
                 port = "http"
 
                 check {
                     type     = "http"
                     port     = "http"
-                    protocol = "https"
+                    protocol = "http"
                     tls_skip_verify = true
                     interval = "10s"
                     path = "/health"
