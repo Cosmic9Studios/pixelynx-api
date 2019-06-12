@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch AssetStore(web)",
+            "name": "Launch Api",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/api/AssetStore.Api/bin/Debug/netcoreapp2.1/AssetStore.Api.dll",
+            "program": "${workspaceFolder}/AssetStore.Api/bin/Debug/netcoreapp2.2/AssetStore.Api.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
@@ -29,7 +29,8 @@
                 }
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "GOOGLE_APPLICATION_CREDENTIALS": "../infrastructure/account.json"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"

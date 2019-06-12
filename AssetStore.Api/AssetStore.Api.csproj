@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="2.3.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="9.0.0" />
     <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="9.0.0" />
     <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="9.0.0" />

@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceRoot}/api/AssetStore.Api/AssetStore.Api.csproj"
+                "${workspaceRoot}/AssetStore.Api/AssetStore.Api.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
