@@ -41,7 +41,8 @@ namespace AssetStore.Api
             }),
             new QueryExecutionOptions
             {
-                TracingPreference = TracingPreference.Always
+                TracingPreference = TracingPreference.Always,
+                IncludeExceptionDetails = true
             });
         }
 
