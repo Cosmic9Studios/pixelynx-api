@@ -23,7 +23,12 @@ namespace AssetStore.Api
             WebHost.CreateDefaultBuilder(args)
                 .UseKestrel(options => 
                 {   
-                    options.Listen(IPAddress.Any, 5000);
+                    options.Listen(IPAddress.Any, 5000, listenOptions =>
+                    {
+                        // Made with mkcert
+                        var cert = new X509Certificate2("temp.pfx", "changeit");
+                        listenOptions.UseHttps(cert);
+                    });
                 })
                 .UseStartup<Startup>();
     }
