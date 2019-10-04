@@ -4,4 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="3.3.104.31" />
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="2.4.0-beta03" />
+  </ItemGroup>
+
 </Project>

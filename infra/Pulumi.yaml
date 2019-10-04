@@ -1,6 +1,0 @@
-name: api
-runtime: 
-  name: nodejs
-  options:
-    typescript: true
-description: A minimal Javascript Pulumi program

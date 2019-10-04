@@ -1,5 +1,4 @@
 {
-  "tagFormat": "${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
     ["@semantic-release/release-notes-generator", {
@@ -11,9 +10,9 @@
         "commitsSort": ["subject", "scope"]
       }
     }],
-    "@semantic-release/gitlab",
+    "@semantic-release/github",
     ["@semantic-release/exec", {
-      "publishCmd": "./publish.sh ${nextRelease.version}"
+      "publishCmd": "./deployment/publish.sh v${nextRelease.version}"
     }],
   ]
 }

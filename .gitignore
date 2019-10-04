@@ -2,3 +2,5 @@
 obj
 bin
 node_modules
+.vagrant
+.terragrunt*

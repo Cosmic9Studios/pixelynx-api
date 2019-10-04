@@ -1,0 +1,34 @@
+name: build
+on:
+  push:
+    branches:
+      - '*'
+      - '*/*'
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Build
+      env:
+        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/assetstore/assetstore
+      run: |
+        docker build -t $CONTAINER_RELEASE_IMAGE:latest .
+
+    - name: Use Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
+    
+    - name: Push Docker Image
+      if: github.ref == 'refs/heads/master'
+      env:
+        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/assetstore/assetstore
+        GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
+        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+      run: |
+        npm install -g semantic-release@15.13.24 @semantic-release/exec @semantic-release/commit-analyzer @semantic-release/github
+        echo ${{ secrets.CI_TOKEN }} | docker login docker.pkg.github.com --username "phenry20" --password-stdin
+        npx semantic-release -b master
