@@ -21,14 +21,16 @@ namespace AssetStore.Api
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseContentRoot(AppDomain.CurrentDomain.BaseDirectory)
+                .ConfigureAppConfiguration((builderContext, config) =>
+                {
+                    var env = builderContext.HostingEnvironment; 
+                    config.AddJsonFile("appsettings.json")
+                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json");
+                })
                 .UseKestrel(options => 
                 {   
-                    options.Listen(IPAddress.Any, 5000, listenOptions =>
-                    {
-                        // Made with mkcert
-                        var cert = new X509Certificate2("temp.pfx", "changeit");
-                        listenOptions.UseHttps(cert);
-                    });
+                    options.Listen(IPAddress.Any, 5000, listenOptions => {});
                 })
                 .UseStartup<Startup>();
     }
