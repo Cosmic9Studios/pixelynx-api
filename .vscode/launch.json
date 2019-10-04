@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/AssetStore.Api/bin/Debug/netcoreapp2.2/AssetStore.Api.dll",
+            "program": "${workspaceFolder}/AssetStore.Api/bin/Debug/netcoreapp3.0/AssetStore.Api.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
