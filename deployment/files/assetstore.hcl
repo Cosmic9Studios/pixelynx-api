@@ -1,7 +1,7 @@
-job "assetstore-api" {
+job "assetstore" {
     datacenters = [ "dc1" ]
 
-    group "assetstore-api" {
+    group "assetstore" {
 
         count = 1
 
@@ -9,9 +9,6 @@ job "assetstore-api" {
             max_parallel = 2
             min_healthy_time = "30s"
             healthy_deadline = "5m"
-
-            # Enable automatically reverting to the last stable job on a failed
-            # deployment.
             auto_revert = false
         }
 
@@ -26,10 +23,10 @@ job "assetstore-api" {
             driver = "docker"
 
             config {
-                image = "https://registry.gitlab.com/cosmic9studios/assetstore/api:${version}"
+                image = "https://docker.pkg.github.com/phenry20/assetstore/assetstore:${version}"
                 auth {
-                    username = "${gitlabUser}"
-                    password = "${gitlabPass}"
+                    username = "${docker_user}"
+                    password = "${docker_pass}"
                 }
 
                 port_map {
@@ -43,10 +40,12 @@ job "assetstore-api" {
                 }
             }
 
-            service {
-                name = "assetstore-api"
-                tags = ["urlprefix-/api"]
+            env {
+                ASPNETCORE_ENVIRONMENT = "Production"
+            }
 
+            service {
+                name = "assetstore"
                 port = "http"
 
                 check {
@@ -55,7 +54,7 @@ job "assetstore-api" {
                     protocol = "http"
                     tls_skip_verify = true
                     interval = "10s"
-                    path = "/health"
+                    path = "/graphiql"
                     timeout = "5s"
                 }
             }

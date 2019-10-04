@@ -1,0 +1,21 @@
+name: deploy
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  release:
+    runs-on: ubuntu-16.04
+    container: cytopia/terragrunt
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Add GPG
+      run: apk add gnupg
+
+    - name: Release
+      env:
+        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        GOOGLE_APPLICATION_CREDENTIALS: "./account.json"
+      run: deployment/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
