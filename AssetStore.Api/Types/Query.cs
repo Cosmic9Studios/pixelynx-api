@@ -29,7 +29,7 @@ namespace AssetStore.Api.Types
 
         public async Task<List<Asset>> Assets()
         {
-            return (await blobStorage.ListObjects("assets"))
+            return (await blobStorage.ListObjects("c9s-assetstore"))
                 .GroupBy(x => x.Key.Split('/')[0])
                 .Select(x => new Asset 
                 {
