@@ -25,7 +25,7 @@ namespace AssetStore.Data.BlobStorage
         {
             client = StorageClient.Create();
             
-            var scopes = new string[] { "https://www.googleapis.com/auth/devstorage.read_only" };
+            var scopes = new string[] { "https://www.googleapis.com/auth/cloud-platform" };
             var cred = GoogleCredential
                  .GetApplicationDefault()
                  .CreateScoped(scopes)
