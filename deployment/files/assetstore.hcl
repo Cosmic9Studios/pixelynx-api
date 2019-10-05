@@ -46,6 +46,7 @@ job "assetstore" {
 
             service {
                 name = "assetstore"
+                tags = ["urlprefix-/gateway/assetstore strip=/gateway/assetstore"]
                 port = "http"
 
                 check {
