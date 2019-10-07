@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AssetStore.Api.Settings;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace AssetStore.Data.BlobStorage
 {
@@ -21,17 +24,19 @@ namespace AssetStore.Data.BlobStorage
         /// <summary>
         /// Initializes a new instance of the <cref="GCStorage"/> class.
         /// </summary>
-        public GCStorage()
+        public GCStorage(IOptions<AccountSettings> accountSettings)
         {
             client = StorageClient.Create();
-            
-            var scopes = new string[] { "https://www.googleapis.com/auth/cloud-platform" };
-            var cred = GoogleCredential
-                 .GetApplicationDefault()
-                 .CreateScoped(scopes)
-                 .UnderlyingCredential as ServiceAccountCredential;
-            
-            urlSigner = UrlSigner.FromServiceAccountCredential(cred);
+        
+            var jsonString = JsonConvert.SerializeObject(accountSettings.Value.KeyFile);
+            var cred = GoogleCredential.FromJson(jsonString);
+            if (cred.IsCreateScopedRequired)
+            {   
+                var scopes = new string[] { "https://www.googleapis.com/auth/cloud-platform" };
+                cred.CreateScoped(scopes);
+            }
+
+            urlSigner = UrlSigner.FromServiceAccountCredential(cred.UnderlyingCredential as ServiceAccountCredential);
         }
         #endregion
 

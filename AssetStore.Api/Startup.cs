@@ -1,25 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AssetStore.Api.Settings;
+﻿using AssetStore.Api.Settings;
 using AssetStore.Api.Types;
 using AssetStore.Data.BlobStorage;
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.GraphiQL;
-using HotChocolate.AspNetCore.Playground;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AssetStore.Api
 {
@@ -65,6 +54,7 @@ namespace AssetStore.Api
             }
             else
             {
+                services.Configure<AccountSettings>(options => Configuration.GetSection("Account").Bind(options));
                 services.AddTransient<IBlobStorage, GCStorage>();
             }
         }

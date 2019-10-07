@@ -1,14 +1,19 @@
 ﻿using System;
+using System.Net;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using AssetStore.Api.Helpers;
 
 namespace AssetStore.Api
 {
@@ -26,7 +31,8 @@ namespace AssetStore.Api
                 {
                     var env = builderContext.HostingEnvironment; 
                     config.AddJsonFile("appsettings.json")
-                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json");
+                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json")
+                          .AddJsonFile(new EncryptedFileProvider(), "appsecrets.json.encrypted", false, true);
                 })
                 .UseKestrel(options => 
                 {   
