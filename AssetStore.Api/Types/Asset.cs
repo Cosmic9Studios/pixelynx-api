@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace AssetStore.Api.Types
@@ -8,15 +7,5 @@ namespace AssetStore.Api.Types
         public string Name { get; set; }
         public string Uri { get; set; }
         public string ThumbnailUri { get; set; }
-    }
-
-    public class AssetType : ObjectType<Asset>
-    {
-        protected override void Configure(IObjectTypeDescriptor<Asset> descriptor)
-        {
-            descriptor.Field(f => f.Name).Type<NonNullType<StringType>>();
-            descriptor.Field(f => f.Uri).Type<NonNullType<StringType>>();
-            descriptor.Field(f => f.ThumbnailUri).Type<NonNullType<StringType>>();
-        }
     }
 }

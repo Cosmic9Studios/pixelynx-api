@@ -1,19 +1,9 @@
 ﻿using System;
 using System.Net;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using AssetStore.Api.Helpers;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace AssetStore.Api
 {
@@ -31,8 +21,12 @@ namespace AssetStore.Api
                 {
                     var env = builderContext.HostingEnvironment; 
                     config.AddJsonFile("appsettings.json")
-                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json")
-                          .AddJsonFile(new EncryptedFileProvider(), "appsecrets.json.encrypted", false, true);
+                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json");
+                    
+                    if (env.EnvironmentName == "Production")
+                    {
+                        config.AddJsonFile(new EncryptedFileProvider(), "appsecrets.json.encrypted", false, true);
+                    }
                 })
                 .UseKestrel(options => 
                 {   

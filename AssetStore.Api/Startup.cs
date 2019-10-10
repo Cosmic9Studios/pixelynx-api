@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,7 @@ namespace AssetStore.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers();
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy",
@@ -34,6 +36,7 @@ namespace AssetStore.Api
                     .AllowAnyHeader());
             });
 
+            
             services.AddGraphQL(sp => Schema.Create(c =>
             {
                 c.RegisterServiceProvider(sp);
@@ -57,6 +60,9 @@ namespace AssetStore.Api
                 services.Configure<AccountSettings>(options => Configuration.GetSection("Account").Bind(options));
                 services.AddTransient<IBlobStorage, GCStorage>();
             }
+
+            Configuration.GetSection("Minio").Bind(new MinioSettings());
+            services.Configure<MinioSettings>(Configuration.GetSection("Minio"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,11 +73,17 @@ namespace AssetStore.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseGraphQL(new QueryMiddlewareOptions { EnableSubscriptions = false });
             app.UseGraphiQL();
             app.UsePlayground();
             app.UseVoyager();
+            
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }

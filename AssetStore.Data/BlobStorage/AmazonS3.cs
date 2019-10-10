@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace AssetStore.Data.BlobStorage
 {
@@ -49,7 +50,7 @@ namespace AssetStore.Data.BlobStorage
                 objectList.Add(new BlobObject 
                 {
                     Key = obj.Key,
-                    Uri = client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest 
+                    Uri = client.GetPreSignedURL(new GetPreSignedUrlRequest 
                     {
                         BucketName = bucket,
                         Key = obj.Key,

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Google.Cloud.Kms.V1;
 using Google.Protobuf;
 using Microsoft.Extensions.FileProviders;
@@ -27,7 +28,7 @@ namespace AssetStore.Api.Helpers
             this.kms = kms ?? KeyManagementServiceClient.Create();
             if (innerProvider == null)
             {
-                string fullPath = System.Reflection.Assembly
+                string fullPath = Assembly
                     .GetAssembly(typeof(EncryptedFileProvider)).Location;
                 string directory = Path.GetDirectoryName(fullPath);
                 this.innerProvider = new PhysicalFileProvider(directory);
@@ -78,11 +79,7 @@ namespace AssetStore.Api.Helpers
             {
                 return fileInfo;
             }
-            if (!fileInfo.Name.EndsWith(".encrypted")) 
-            {
-                return null;
-            }
-            return new EncryptedFileInfo(kms, fileInfo, keynameFileInfo);
+            return !fileInfo.Name.EndsWith(".encrypted") ? null : new EncryptedFileInfo(kms, fileInfo, keynameFileInfo);
         }
 
         private EncryptedFileInfo(KeyManagementServiceClient kms,
@@ -119,7 +116,7 @@ namespace AssetStore.Api.Helpers
                 response = kms.Decrypt(cryptoKeyName.Value,
                     ByteString.FromStream(stream));
             }
-            MemoryStream memStream = new MemoryStream();
+            var memStream = new MemoryStream();
             response.Plaintext.WriteTo(memStream);
             memStream.Seek(0, SeekOrigin.Begin);
             return memStream;
@@ -134,43 +131,41 @@ namespace AssetStore.Api.Helpers
                     keynameFileInfo.Name);
             }
 
-            using (var reader = new StreamReader(keynameFileInfo.CreateReadStream()))
+            using var reader = new StreamReader(keynameFileInfo.CreateReadStream());
+            var line = "";
+            while (!reader.EndOfStream) 
             {
-                string line = "";
-                while (!reader.EndOfStream) 
+                line = reader.ReadLine()?.Trim();
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#')) 
                 {
-                    line = reader.ReadLine().Trim();
-                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#')) 
-                    {
-                        continue; // blank or comment;
-                    }
-                    var keyName = CryptoKeyName.Parse(line);
-                    if (keyName != null)
-                    {
-                        return keyName;
-                    }
-                    break;
+                    continue; // blank or comment;
                 }
-                throw new Exception(
-                    $"Incorrectly formatted keyname file {keynameFileInfo.Name}.\n" +
-                    "Expected projects/<projectId>/locations/<locationId>/keyRings/<keyringId>/cryptoKeys/<keyId>\n" +
-                    $"Instead, found {line}.");                        
+                var keyName = CryptoKeyName.Parse(line);
+                if (keyName != null)
+                {
+                    return keyName;
+                }
+                break;
             }
+            throw new Exception(
+                $"Incorrectly formatted keyname file {keynameFileInfo.Name}.\n" +
+                "Expected projects/<projectId>/locations/<locationId>/keyRings/<keyringId>/cryptoKeys/<keyId>\n" +
+                $"Instead, found {line}.");
         }
     }
 
     public class EncryptedDirectoryContents : IDirectoryContents
     {
-        private readonly KeyManagementServiceClient kms;
-        private readonly IDirectoryContents innerDirectoryContents;
+        private readonly KeyManagementServiceClient _kms;
+        private readonly IDirectoryContents _innerDirectoryContents;
         public EncryptedDirectoryContents(KeyManagementServiceClient kms,
             IDirectoryContents innerDirectoryContents)
         {
-            this.kms = kms;
-            this.innerDirectoryContents = innerDirectoryContents;
+            this._kms = kms;
+            this._innerDirectoryContents = innerDirectoryContents;
         }
 
-        public bool Exists => innerDirectoryContents.Exists;
+        public bool Exists => _innerDirectoryContents.Exists;
 
         public IEnumerator<IFileInfo> GetEnumerator()
         {
@@ -178,7 +173,7 @@ namespace AssetStore.Api.Helpers
             // .encrypted and .keyname extensions.
             var keynameFiles = new Dictionary<String, IFileInfo>();
             var encryptedFiles = new List<IFileInfo>();
-            foreach (var fileInfo in innerDirectoryContents)
+            foreach (var fileInfo in _innerDirectoryContents)
             {
                 if (fileInfo.IsDirectory)
                 {
@@ -197,13 +192,13 @@ namespace AssetStore.Api.Helpers
                     }
                 }
             }
-            foreach (IFileInfo fileInfo in encryptedFiles) 
+            foreach (var fileInfo in encryptedFiles) 
             {
-                IFileInfo keynameFile = keynameFiles.GetValueOrDefault(
+                var keynameFile = keynameFiles.GetValueOrDefault(
                     Path.ChangeExtension(fileInfo.Name, ".keyname"));
                 if (keynameFile != null)
                 {
-                    yield return EncryptedFileInfo.FromFileInfo(kms, fileInfo,
+                    yield return EncryptedFileInfo.FromFileInfo(_kms, fileInfo,
                         keynameFile);
                 } 
             }
@@ -211,7 +206,7 @@ namespace AssetStore.Api.Helpers
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            IEnumerator<IFileInfo> x = this.GetEnumerator();
+            var x = this.GetEnumerator();
             return x;
         }
     }

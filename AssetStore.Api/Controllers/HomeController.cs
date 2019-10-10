@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssetStore.Api.Controllers
@@ -10,12 +6,20 @@ namespace AssetStore.Api.Controllers
     public class HomeController : Controller
     {
         [HttpGet]
-        public IActionResult Get() {
+        public IActionResult Get() 
+        {
             return Ok();
         }
 
         [HttpGet("health")]
-        public IActionResult Health() {
+        public IActionResult Health() 
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult Upload()
+        {
             return Ok();
         }
     }

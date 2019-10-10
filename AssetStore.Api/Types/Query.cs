@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Amazon;
-using Amazon.S3;
+using AssetStore.Api.Settings;
 using AssetStore.Data.BlobStorage;
-using Google.Apis.Auth.OAuth2;
-using Google.Cloud.Storage.V1;
-using HotChocolate.Types;
+using Microsoft.Extensions.Options;
 
 namespace AssetStore.Api.Types
 {
@@ -18,23 +14,26 @@ namespace AssetStore.Api.Types
         ///
         /////////////////////////////////////
         private IBlobStorage blobStorage;
+
+        private string _minioRootPath;
         #endregion
 
-        public Query(IBlobStorage blobStorage)
+        public Query(IBlobStorage blobStorage, IOptions<MinioSettings> minioSettings)
         {
             this.blobStorage = blobStorage;
+            _minioRootPath = minioSettings.Value.RootPath;
         }
 
         public string Hello() => "world"; 
 
         public async Task<List<Asset>> Assets()
         {
-            return (await blobStorage.ListObjects("c9s-assetstore"))
+            return (await blobStorage.ListObjects(_minioRootPath))
                 .GroupBy(x => x.Key.Split('/')[0])
                 .Select(x => new Asset 
                 {
-                    Uri = x.FirstOrDefault(y => y.Key.EndsWith(".glb")).Uri,
-                    ThumbnailUri = x.FirstOrDefault(y => !y.Key.EndsWith("glb") && y.Key != $"{x.Key}/").Uri,
+                    Uri = x.FirstOrDefault(y => y.Key.EndsWith(".glb"))?.Uri,
+                    ThumbnailUri = x.FirstOrDefault(y => !y.Key.EndsWith("glb") && y.Key != $"{x.Key}/")?.Uri,
                     Name = x.Key,
                 }).ToList();
         }
