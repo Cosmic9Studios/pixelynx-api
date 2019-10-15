@@ -12,6 +12,6 @@ terraform {
 }
 
 inputs = {
-  address = "https://pixelynx.com"
+  address = "https://nomad.pixelynx.com"
   file_path = "${get_terragrunt_dir()}/../files/assetstore.hcl"
 }
