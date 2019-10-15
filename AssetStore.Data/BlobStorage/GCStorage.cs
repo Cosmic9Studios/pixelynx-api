@@ -24,18 +24,17 @@ namespace AssetStore.Data.BlobStorage
         /// <summary>
         /// Initializes a new instance of the <cref="GCStorage"/> class.
         /// </summary>
-        public GCStorage(IOptions<AccountSettings> accountSettings)
+        public GCStorage(string accountData)
         {
             client = StorageClient.Create();
-        
-            var jsonString = JsonConvert.SerializeObject(accountSettings.Value.KeyFile);
-            var cred = GoogleCredential.FromJson(jsonString);
+    
+            var cred = GoogleCredential.FromJson(accountData);
             if (cred.IsCreateScopedRequired)
             {   
                 var scopes = new string[] { "https://www.googleapis.com/auth/cloud-platform" };
                 cred.CreateScoped(scopes);
             }
-
+            
             urlSigner = UrlSigner.FromServiceAccountCredential(cred.UnderlyingCredential as ServiceAccountCredential);
         }
         #endregion

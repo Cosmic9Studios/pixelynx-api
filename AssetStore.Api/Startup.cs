@@ -1,6 +1,7 @@
 ﻿using AssetStore.Api.Settings;
 using AssetStore.Api.Types;
 using AssetStore.Data.BlobStorage;
+using C9S.Configuration.Variables;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
@@ -45,6 +46,7 @@ namespace AssetStore.Api
                 IncludeExceptionDetails = true
             });
 
+            Configuration.ResolveVariables("${", "}");
             if (HostingEnvironment.EnvironmentName == "Development")
             {
                 var blobSettings = new BlobSettings();
@@ -54,8 +56,7 @@ namespace AssetStore.Api
             }
             else
             {
-                services.Configure<AccountSettings>(options => Configuration.GetSection("Account").Bind(options));
-                services.AddTransient<IBlobStorage, GCStorage>();
+                services.AddSingleton<IBlobStorage>(new GCStorage(Configuration.GetSection("ServiceAccount").Get<string>()));
             }
         }
 
