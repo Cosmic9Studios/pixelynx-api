@@ -3,17 +3,15 @@ using System.Net;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using VaultSharp;
+using VaultSharp.V1.AuthMethods.GoogleCloud;
+using AssetStore.Logic.Helpers;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using AssetStore.Api.Helpers;
+using System.Collections.Generic;
+using C9S.Configuration.HashicorpVault;
+using VaultSharp.V1.AuthMethods;
+using VaultSharp.V1.AuthMethods.Token;
 
 namespace AssetStore.Api
 {
@@ -21,6 +19,12 @@ namespace AssetStore.Api
     {
         public static void Main(string[] args)
         {
+            JsonConvert.DefaultSettings = () =>
+            {
+                var settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+                return settings;
+            };
+
             CreateWebHostBuilder(args).Build().Run();
         }
 
@@ -31,10 +35,29 @@ namespace AssetStore.Api
                 {
                     var env = builderContext.HostingEnvironment; 
                     config.AddJsonFile("appsettings.json")
-                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json")
-                          .AddJsonFile(new EncryptedFileProvider(), "appsecrets.json.encrypted", false, true);
+                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json");
+                    
+                    var configuration = config.Build();
+                    var address = configuration.GetSection("Vault:Address").Get<string>();
+                    var paths = configuration.GetSection("Vault:Paths").Get<List<string>>();
+
+                    IAuthMethodInfo authMethod = null;
+                    if (env.EnvironmentName == "Production") 
+                    {
+                        authMethod = new GoogleCloudAuthMethodInfo("my-iam-role", 
+                            Task.Run(() => GCPHelper.SignJwt("assetstore", "c9s-bot@assetstore.iam.gserviceaccount.com")).Result);
+                    }
+                    else 
+                    {
+                        authMethod = new TokenAuthMethodInfo("token");
+                    }
+
+                    var vaultClientSettings = new VaultClientSettings(address, authMethod);
+                    var vaultClient = new VaultClient(vaultClientSettings);
+                
+                    config.AddHashicorpVault(vaultClient, KVVersion.V1, paths.ToArray());
                 })
-                .UseKestrel(options => 
+                .UseKestrel(options =>
                 {   
                     options.Listen(IPAddress.Any, 5000, listenOptions => {});
                 })

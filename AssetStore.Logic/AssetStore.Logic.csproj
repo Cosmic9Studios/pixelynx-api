@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Iam.v1" Version="1.41.1.1723" />
+    <PackageReference Include="Google.Cloud.Iam.V1" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AssetStore.Data\AssetStore.Data.csproj" />
   </ItemGroup>
 
