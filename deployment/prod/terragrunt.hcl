@@ -2,7 +2,7 @@ remote_state {
   backend = "gcs"
   config = {
     bucket         = "c9s-state"
-    prefix         = "prod/nomad-assetstore"
+    prefix         = "prod/nomad-pixelynx"
   } 
 }
 
