@@ -13,5 +13,10 @@ terraform {
 
 inputs = {
   address = "https://nomad.pixelynx.com"
-  file_path = "${get_terragrunt_dir()}/../files/assetstore.hcl"
+  file_path = "${get_terragrunt_dir()}/../files/api.hcl"
+  vars = {
+      docker_user = "phenry20"
+      docker_pass = "4c9c1ba12ce6b2fbedfa9c0848e8c5b0ac8e277f"
+      version = "latest"
+  }
 }
