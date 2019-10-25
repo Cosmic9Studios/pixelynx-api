@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelynx.Api", "Pixelynx.Api\Pixelynx.Api.csproj", "{17951321-A7CF-4B84-AA5C-13942345192D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelynx.Business", "Pixelynx.Business\Pixelynx.Business.csproj", "{36352AD7-C667-46F5-B02F-2E03ECAF1CF3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelynx.Logic", "Pixelynx.Logic\Pixelynx.Logic.csproj", "{36352AD7-C667-46F5-B02F-2E03ECAF1CF3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelynx.Data", "Pixelynx.Data\Pixelynx.Data.csproj", "{CE61F066-941C-4B39-86EC-35B6A300F817}"
 EndProject
