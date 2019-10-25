@@ -25,19 +25,8 @@
     <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <None Update="temp.pfx" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Update="account.json.gpg" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="appsecrets.json.encrypted" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="appsecrets.json.keyname" CopyToOutputDirectory="PreserveNewest" />
-    <Content Remove="appsecrets.json" />
-    <Content Remove="scripts/*" />
   </ItemGroup>
 
 </Project>
