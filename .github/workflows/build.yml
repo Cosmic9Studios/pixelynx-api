@@ -13,7 +13,7 @@ jobs:
 
     - name: Build
       env:
-        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/assetstore/assetstore
+        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/pixelynx-api/pixelynx-api
       run: |
         docker build -t $CONTAINER_RELEASE_IMAGE:latest .
 
@@ -25,7 +25,7 @@ jobs:
     - name: Push Docker Image
       if: github.ref == 'refs/heads/master'
       env:
-        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/assetstore/assetstore
+        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/pixelynx-api/pixelynx-api
         GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
         CI_TOKEN: ${{ secrets.CI_TOKEN }}
       run: |

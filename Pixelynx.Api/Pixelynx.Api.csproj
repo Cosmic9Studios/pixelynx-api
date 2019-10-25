@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="C9S.Configuration.Variables" Version="1.0.0" />
+    <PackageReference Include="C9S.Configuration.HashicorpVault" Version="1.0.1" />
+    <PackageReference Include="Google.Cloud.Kms.V1" Version="1.0.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="10.1.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="10.1.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.1.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.1.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.1.0" />
+    <PackageReference Include="VaultSharp" Version="0.11.1002" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
+    <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="account.json.gpg" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

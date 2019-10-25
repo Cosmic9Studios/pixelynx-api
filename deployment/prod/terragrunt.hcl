@@ -2,7 +2,7 @@ remote_state {
   backend = "gcs"
   config = {
     bucket         = "c9s-state"
-    prefix         = "prod/nomad-assetstore"
+    prefix         = "prod/nomad-pixelynx"
   } 
 }
 
@@ -13,5 +13,5 @@ terraform {
 
 inputs = {
   address = "https://nomad.pixelynx.com"
-  file_path = "${get_terragrunt_dir()}/../files/assetstore.hcl"
+  file_path = "${get_terragrunt_dir()}/../files/api.hcl"
 }

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="3.3.104.31" />
+    <PackageReference Include="Google.Apis.Iam.v1" Version="1.41.1.1723" />
+    <PackageReference Include="Google.Cloud.Kms.V1" Version="1.0.0" />
+    <PackageReference Include="Google.Cloud.Metadata.V1" Version="1.0.0-alpha07" />
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="2.4.0-beta03" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="3.0.0" />
+  </ItemGroup>
+
+</Project>
