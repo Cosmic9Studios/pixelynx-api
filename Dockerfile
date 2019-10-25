@@ -7,8 +7,6 @@ RUN dotnet publish -o ./publish
 FROM dotnet-sdk
 
 COPY --from=0 /tempApp/Pixelynx.Api/publish /app
-RUN apt-get update && apt-get install -y curl && curl -sSL https://sdk.cloud.google.com | bash
-ENV PATH="$PATH:/root/google-cloud-sdk/bin"
 WORKDIR /app
 CMD [ "dotnet", "Pixelynx.Api.dll" ]
 

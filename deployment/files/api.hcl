@@ -29,10 +29,6 @@ job "pixelynx-api" {
                     password = "${docker_pass}"
                 }
 
-                volumes = [
-                    "~/.config/gcloud:/root/.config/gcloud",
-                ]
-
                 port_map {
                     http = 5000
                 }
