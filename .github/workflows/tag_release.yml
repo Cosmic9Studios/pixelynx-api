@@ -17,5 +17,5 @@ jobs:
     - name: Release
       env:
         CI_TOKEN: ${{ secrets.CI_TOKEN }}
-        GOOGLE_APPLICATION_CREDENTIALS: "./account.json"
-      run: deployment/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx-staging.json"
+      run: deployment/staging/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
