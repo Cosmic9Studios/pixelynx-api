@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
-    <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
   </ItemGroup>
 
   <ItemGroup>
