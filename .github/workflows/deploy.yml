@@ -1,0 +1,22 @@
+name: 'Deploy'
+on:
+  deployment: 
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    if: contains(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    container: cytopia/terragrunt
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Add GPG
+      run: apk add gnupg
+
+    - name: Deploy Production
+      env:
+        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
+      run: deployment/prod/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
