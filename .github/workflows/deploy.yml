@@ -1,8 +1,5 @@
 name: 'Deploy'
-on:
-  deployment: 
-    tags:
-      - '*'
+on: ['deployment']
 
 jobs:
   deploy:
