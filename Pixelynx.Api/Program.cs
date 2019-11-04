@@ -45,7 +45,7 @@ namespace Pixelynx.Api
                     if (env.EnvironmentName == "Production") 
                     {
                         authMethod = new GoogleCloudAuthMethodInfo("my-iam-role", 
-                            Task.Run(() => GCPHelper.SignJwt("assetstore", "c9s-bot@assetstore.iam.gserviceaccount.com")).Result);
+                            Task.Run(() => GCPHelper.SignJwt("assetstore", "lynxbot@pixelynx.iam.gserviceaccount.com")).Result);
                     }
                     else 
                     {
