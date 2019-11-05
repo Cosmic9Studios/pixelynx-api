@@ -11,12 +11,21 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - uses: actions/checkout@v1
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.100
+
+    - name: Test
+      run: dotnet test
+
     - name: Build
       env:
         CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/pixelynx-api/pixelynx-api
       run: |
         docker build -t $CONTAINER_RELEASE_IMAGE:latest .
-
+    
     - name: Use Node
       uses: actions/setup-node@v1
       with:
