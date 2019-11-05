@@ -33,3 +33,15 @@ query {
 ```
 
 3. In the "data" section of the result you should see the name: robot and you should have temporary links to your .glb file and the image you added robot folder.
+
+
+### Migrations 
+
+Whenever you make a change to a db entity you need to make a migration. This migration will be used to update the database to reflect the changes made to the entity. 
+
+To create a migration cd into the `Pixelynx.Data` folder and run 
+
+`pwsh addMigration.ps1 ${MigrationName}` OR `powershell addMigration.ps1 ${MigrationName}` -- Replace `MigrationName` with the name of your migration 
+Ex: `pwsh addMigration.ps1 AddedGroupTable`
+
+Migrations will automatically be applied once you run the code, but if you want to apply them before then run the `updateDatabase.ps1` script.
