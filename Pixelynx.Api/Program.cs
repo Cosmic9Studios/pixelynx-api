@@ -44,7 +44,7 @@ namespace Pixelynx.Api
                     var serviceAccountEmail = configuration.GetSection("ServiceAccountEmail").Get<string>();
 
                     IAuthMethodInfo authMethod = null;
-                    if (env.EnvironmentName == "Production") 
+                    if (env.EnvironmentName != "Development") 
                     {
                         authMethod = new GoogleCloudAuthMethodInfo("my-iam-role", 
                             Task.Run(() => GCPHelper.SignJwt(project, serviceAccountEmail)).Result);
