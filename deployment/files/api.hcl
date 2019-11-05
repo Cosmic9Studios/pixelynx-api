@@ -41,7 +41,7 @@ job "pixelynx-api" {
             }
 
             env {
-                ASPNETCORE_ENVIRONMENT = "Production"
+                ASPNETCORE_ENVIRONMENT = "${environment}"
             }
 
             service {

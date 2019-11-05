@@ -8,6 +8,7 @@ vars = {
     version = "${GITHUB_REF:10}"
     docker_user = "phenry20"
     docker_pass = "$CI_TOKEN"
+    environment = "Staging"
 }
 EOM
 

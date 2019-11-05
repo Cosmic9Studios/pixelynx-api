@@ -40,12 +40,14 @@ namespace Pixelynx.Api
                     var configuration = config.Build();
                     var address = configuration.GetSection("Vault:Address").Get<string>();
                     var paths = configuration.GetSection("Vault:Paths").Get<List<string>>();
+                    var project = configuration.GetSection("Project").Get<string>();
+                    var serviceAccountEmail = configuration.GetSection("ServiceAccountEmail").Get<string>();
 
                     IAuthMethodInfo authMethod = null;
                     if (env.EnvironmentName == "Production") 
                     {
                         authMethod = new GoogleCloudAuthMethodInfo("my-iam-role", 
-                            Task.Run(() => GCPHelper.SignJwt("assetstore", "lynxbot@pixelynx.iam.gserviceaccount.com")).Result);
+                            Task.Run(() => GCPHelper.SignJwt(project, serviceAccountEmail)).Result);
                     }
                     else 
                     {
