@@ -1,0 +1,1 @@
+dotnet ef --startup-project ../Pixelynx.Api/ database update
