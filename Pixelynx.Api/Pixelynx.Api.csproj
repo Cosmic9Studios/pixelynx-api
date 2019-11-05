@@ -17,16 +17,16 @@
     <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.1.0" />
     <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.1.0" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="VaultSharp" Version="0.11.1002" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
-    <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="account.json.gpg" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

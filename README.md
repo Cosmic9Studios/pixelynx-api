@@ -14,11 +14,8 @@ Run `vagrant up` to start the Vagrant VM
 
 ### Vault
 
-1. Navigate to http://localhost:8200/ui to access Vault. This is what you'll be using for secrets management for development. The credential is: "token"
-2. Once logged in you should see a folder named `secret/` in the secrets tab. Click the elipses (...) and delete the folder.
-3. Click on "Enable New Engine" then select KV then press next
-4. In the path field put "secret" and put the version as 1
-5. After you've enabled it add a dummy secret (The values don't matter)
+Navigate to http://localhost:8200/ui to access Vault. This is what you'll be using for secrets management for development. The credential is: "token"
+All the default data is set for you via the Vagrantfile so you just need to run the code =)
 
 ### Running the Application
 

@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Pixelynx.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Pixelynx.Api
 {
@@ -28,6 +30,8 @@ namespace Pixelynx.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            Configuration.ResolveVariables("${", "}");
+
             services.AddLogging(configure => configure.AddConsole());
             services.AddCors(options =>
             {
@@ -36,6 +40,9 @@ namespace Pixelynx.Api
                     .AllowAnyMethod()
                     .AllowAnyHeader());
             });
+
+            var connectionString = Configuration.GetConnectionString("Pixelynx");
+            services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString));
 
             services.AddGraphQL(sp => Schema.Create(c =>
             {
@@ -48,7 +55,7 @@ namespace Pixelynx.Api
                 IncludeExceptionDetails = true
             });
 
-            Configuration.ResolveVariables("${", "}");
+            
             if (HostingEnvironment.EnvironmentName == "Development")
             {
                 var blobSettings = new BlobSettings();
@@ -57,14 +64,16 @@ namespace Pixelynx.Api
                 services.AddSingleton<IBlobStorage>(new AmazonS3(blobSettings.Address, blobSettings.AccessKey, blobSettings.SecretKey));
             }
             else
-            {
+            { 
                 services.AddSingleton<IBlobStorage>(new GCStorage(Configuration.GetSection("ServiceAccount").Get<string>()));
             }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, PixelynxContext context)
         {
+            context.Database.Migrate();
+
             if (HostingEnvironment.EnvironmentName == "Development")
             {
                 app.UseDeveloperExceptionPage();
