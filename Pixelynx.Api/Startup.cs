@@ -41,6 +41,8 @@ namespace Pixelynx.Api
                     .AllowAnyHeader());
             });
 
+            services.Configure<AssetstoreSettings>(Configuration.GetSection("Assetstore"));
+
             var connectionString = Configuration.GetConnectionString("Pixelynx");
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString));
 
@@ -65,7 +67,7 @@ namespace Pixelynx.Api
             }
             else
             { 
-                services.AddSingleton<IBlobStorage>(new GCStorage(Configuration.GetSection("ServiceAccount").Get<string>()));
+                services.AddSingleton<IBlobStorage>(new GCStorage(Configuration.GetSection("GCP:ServiceAccount").Get<string>()));
             }
         }
 

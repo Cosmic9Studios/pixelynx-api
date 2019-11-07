@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using C9S.Configuration.HashicorpVault;
 using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
+using C9S.Configuration.Variables;
 
 namespace Pixelynx.Api
 {
@@ -38,10 +39,11 @@ namespace Pixelynx.Api
                           .AddJsonFile($"appsettings.{env.EnvironmentName}.json");
                     
                     var configuration = config.Build();
+                    configuration.ResolveVariables("${", "}");
                     var address = configuration.GetSection("Vault:Address").Get<string>();
                     var paths = configuration.GetSection("Vault:Paths").Get<List<string>>();
-                    var project = configuration.GetSection("Project").Get<string>();
-                    var serviceAccountEmail = configuration.GetSection("ServiceAccountEmail").Get<string>();
+                    var project = configuration.GetSection("GCP:Project").Get<string>();
+                    var serviceAccountEmail = configuration.GetSection("GCP:ServiceAccountEmail").Get<string>();
 
                     IAuthMethodInfo authMethod = null;
                     if (env.EnvironmentName != "Development") 

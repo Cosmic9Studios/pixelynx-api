@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Pixelynx.Api.Settings;
 using Pixelynx.Data.BlobStorage;
 
 namespace Pixelynx.Api.Types
@@ -12,17 +14,19 @@ namespace Pixelynx.Api.Types
         ///
         /////////////////////////////////////
         private IBlobStorage blobStorage;
+        private AssetstoreSettings assetstoreSettings;
         #endregion
 
-        public Query(IBlobStorage blobStorage)
+        public Query(IBlobStorage blobStorage, IOptions<AssetstoreSettings> assetstoreSettings)
         {
             this.blobStorage = blobStorage;
+            this.assetstoreSettings = assetstoreSettings.Value;
         }
 
         public string Hello() => "world"; 
 
         public async Task<List<Asset>> Assets(string filter) =>
-            (await blobStorage.ListObjects("c9s-assetstore"))
+            (await blobStorage.ListObjects(assetstoreSettings.BucketName))
                 .GroupBy(x => x.Key.Split('/')[0])
                 .Where(x => string.IsNullOrWhiteSpace(filter) || x.Key.Contains(filter))
                 .Select(x => new Asset 
