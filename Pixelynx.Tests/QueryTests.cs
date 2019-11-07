@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
+using Pixelynx.Api.Settings;
 using Pixelynx.Api.Types;
 using Pixelynx.Data.BlobStorage;
 using Xunit;
@@ -28,7 +30,7 @@ namespace Pixelynx.Tests
         [Fact]
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
-            var query = new Query(blobStorageMock.Object);
+            var query = new Query(blobStorageMock.Object, Options.Create(new AssetstoreSettings()));
             var result = await query.Assets("");
 
             result.Should().HaveCount(2);
@@ -37,7 +39,7 @@ namespace Pixelynx.Tests
         [Fact]
         public async Task Assets_ShouldOnlyReturnAssetsThatContainFilter()
         {
-            var query = new Query(blobStorageMock.Object);
+            var query = new Query(blobStorageMock.Object, Options.Create(new AssetstoreSettings()));
             var result = await query.Assets("robot");
 
             result.Should().HaveCount(1);
