@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Pixelynx.Api.Settings;
@@ -13,6 +12,8 @@ namespace Pixelynx.Api.Types
 {
     public class Query 
     {
+        private readonly IEnumerable<string> modelTypes = new List<string> {".glb", ".gltf"};
+
         public string Hello() => "world"; 
 
         public string Me([Service]IHttpContextAccessor context) => $"Hello, your Id is: {context.HttpContext.User.Identity.Name}";
@@ -27,8 +28,8 @@ namespace Pixelynx.Api.Types
                 .Where(x => string.IsNullOrWhiteSpace(filter) || x.Key.Contains(filter))
                 .Select(x => new Asset 
                 {
-                    Uri = x.FirstOrDefault(y => y.Key.EndsWith(".glb")).Uri,
-                    ThumbnailUri = x.FirstOrDefault(y => !y.Key.EndsWith("glb") && y.Key != $"{x.Key}/").Uri,
+                    Uri = x.FirstOrDefault(y => modelTypes.Any(z => y.Key.EndsWith(z))).Uri,
+                    ThumbnailUri = x.FirstOrDefault(y => modelTypes.Any(z => y.Key.EndsWith(z)) && y.Key != $"{x.Key}/").Uri,
                     Name = x.Key,
                 }).ToList();
         }
