@@ -30,8 +30,8 @@ namespace Pixelynx.Tests
         [Fact]
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
-            var query = new Query(blobStorageMock.Object, Options.Create(new AssetstoreSettings()));
-            var result = await query.Assets("");
+            var query = new Query();
+            var result = await query.GetAssets(blobStorageMock.Object, Options.Create(new AssetstoreSettings()), "");
 
             result.Should().HaveCount(2);
         }
@@ -39,8 +39,8 @@ namespace Pixelynx.Tests
         [Fact]
         public async Task Assets_ShouldOnlyReturnAssetsThatContainFilter()
         {
-            var query = new Query(blobStorageMock.Object, Options.Create(new AssetstoreSettings()));
-            var result = await query.Assets("robot");
+            var query = new Query();
+            var result = await query.GetAssets(blobStorageMock.Object, Options.Create(new AssetstoreSettings()), "robot");
 
             result.Should().HaveCount(1);
         }

@@ -4,7 +4,6 @@ using Pixelynx.Data.BlobStorage;
 using C9S.Configuration.Variables;
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,6 +12,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Pixelynx.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Pixelynx.Api.Security;
+using Microsoft.AspNetCore.Authorization;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using Pixelynx.Logic.Services;
+using Microsoft.AspNetCore.Identity;
+using System;
+using Pixelynx.Data.Entities;
+using Pixelynx.Logic.Settings;
+using Pixelynx.Logic.Interfaces;
+using Pixelynx.Data.Models;
 
 namespace Pixelynx.Api
 {
@@ -33,30 +44,17 @@ namespace Pixelynx.Api
             Configuration.ResolveVariables("${", "}");
 
             services.AddLogging(configure => configure.AddConsole());
-            services.AddCors(options =>
-            {
-                options.AddPolicy("CorsPolicy",
-                    builder => builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader());
-            });
+            services.AddCors();
+            services.AddControllers();
 
+            services.Configure<AuthSettings>(Configuration.GetSection("Auth"));
             services.Configure<AssetstoreSettings>(Configuration.GetSection("Assetstore"));
+            services.Configure<EmailSettings>(Configuration.GetSection("Email"));
+
+            services.AddScoped<IEmailService, EmailService>();
 
             var connectionString = Configuration.GetConnectionString("Pixelynx");
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString));
-
-            services.AddGraphQL(sp => Schema.Create(c =>
-            {
-                c.RegisterServiceProvider(sp);
-                c.RegisterQueryType<Query>();
-            }),
-            new QueryExecutionOptions
-            {
-                TracingPreference = TracingPreference.Always,
-                IncludeExceptionDetails = true
-            });
-
             
             if (HostingEnvironment.EnvironmentName == "Development")
             {
@@ -69,6 +67,75 @@ namespace Pixelynx.Api
             { 
                 services.AddSingleton<IBlobStorage>(new GCStorage(Configuration.GetSection("GCP:ServiceAccount").Get<string>()));
             }
+
+            services.AddIdentity<UserEntity, Role>()
+                .AddEntityFrameworkStores<PixelynxContext>()
+                .AddDefaultTokenProviders();
+
+            var key = Encoding.ASCII.GetBytes(Configuration["Auth:JWTSecret"]);
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.IncludeErrorDetails = true;
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("assets:read", policy => policy.Requirements.Add(new HasScopeRequirement("assets:read")));
+                options.AddPolicy("assets:write", policy => policy.Requirements.Add(new HasScopeRequirement("assets:write")));
+            });
+
+            services.Configure<IdentityOptions>(options =>  
+            {  
+                // Password settings  
+                options.Password.RequireDigit = true;  
+                options.Password.RequiredLength = 8;  
+                options.Password.RequireNonAlphanumeric = false;  
+                options.Password.RequireUppercase = true;  
+                options.Password.RequireLowercase = false;  
+                options.Password.RequiredUniqueChars = 6;  
+  
+                // Lockout settings  
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);  
+                options.Lockout.MaxFailedAccessAttempts = 10;  
+                options.Lockout.AllowedForNewUsers = true;  
+  
+                // User settings  
+                options.User.RequireUniqueEmail = true;  
+                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
+            });
+
+            services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+
+            services.AddGraphQL(sp =>
+                SchemaBuilder.New()
+                    .AddServices(sp)
+                    .AddAuthorizeDirectiveType()
+                    .AddQueryType<QueryType>()
+                    .Create(), 
+
+                new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.Always,
+                    IncludeExceptionDetails = true
+                }
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -81,11 +148,23 @@ namespace Pixelynx.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors("CorsPolicy");
+            app.UseRouting();
+
+            // global cors policy
+            app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseGraphQL(new QueryMiddlewareOptions { EnableSubscriptions = false });
             app.UseGraphiQL();
-            app.UsePlayground();
-            app.UseVoyager();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }
