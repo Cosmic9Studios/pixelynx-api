@@ -42,20 +42,22 @@ namespace Pixelynx.Api
         public void ConfigureServices(IServiceCollection services)
         {
             Configuration.ResolveVariables("${", "}");
+            var connectionString = Configuration.GetConnectionString("Pixelynx");
 
             services.AddLogging(configure => configure.AddConsole());
             services.AddCors();
             services.AddControllers();
 
+            // IOptions
             services.Configure<AuthSettings>(Configuration.GetSection("Auth"));
             services.Configure<AssetstoreSettings>(Configuration.GetSection("Assetstore"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
 
+            // Services
             services.AddScoped<IEmailService, EmailService>();
-
-            var connectionString = Configuration.GetConnectionString("Pixelynx");
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString));
             
+            // Environment specific services
             if (HostingEnvironment.EnvironmentName == "Development")
             {
                 var blobSettings = new BlobSettings();
@@ -68,6 +70,7 @@ namespace Pixelynx.Api
                 services.AddSingleton<IBlobStorage>(new GCStorage(Configuration.GetSection("GCP:ServiceAccount").Get<string>()));
             }
 
+            // Order matters. This needs to be before AddAuthentication
             services.AddIdentity<UserEntity, Role>()
                 .AddEntityFrameworkStores<PixelynxContext>()
                 .AddDefaultTokenProviders();
@@ -150,7 +153,7 @@ namespace Pixelynx.Api
 
             app.UseRouting();
 
-            // global cors policy
+            // Global cors policy
             app.UseCors(x => x
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
