@@ -15,7 +15,7 @@
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
             "launchBrowser": {
-                "enabled": true,
+                "enabled": false,
                 "args": "${auto-detect-url}",
                 "windows": {
                     "command": "cmd.exe",
@@ -29,8 +29,7 @@
                 }
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development",
-                "GOOGLE_APPLICATION_CREDENTIALS": "../infrastructure/account.json"
+                "ASPNETCORE_ENVIRONMENT": "Development"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
