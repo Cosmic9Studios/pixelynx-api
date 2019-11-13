@@ -10,6 +10,8 @@
     <PackageReference Include="Google.Cloud.Kms.V1" Version="1.0.0" />
     <PackageReference Include="Google.Cloud.Metadata.V1" Version="1.0.0-alpha07" />
     <PackageReference Include="Google.Cloud.Storage.V1" Version="2.4.0-beta03" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

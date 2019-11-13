@@ -1,10 +1,13 @@
+using System;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Pixelynx.Data.Entities;
+using Pixelynx.Data.Models;
 
 namespace Pixelynx.Data
 {
-    public class PixelynxContext : DbContext
+    public class PixelynxContext : IdentityDbContext<UserEntity, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
     {
         #region Constructors.
         /// <summary>
@@ -13,10 +16,6 @@ namespace Pixelynx.Data
         public PixelynxContext(DbContextOptions<PixelynxContext> options) : base(options)
         {
         }
-        #endregion
-
-        #region DbSets.
-        public DbSet<UserEntity> Users { get; set; }
         #endregion
     }
 }
