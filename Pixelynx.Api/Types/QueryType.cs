@@ -29,7 +29,7 @@ namespace Pixelynx.Api.Types
                 .Select(x => new Asset 
                 {
                     Uri = x.FirstOrDefault(y => modelTypes.Any(z => y.Key.EndsWith(z))).Uri,
-                    ThumbnailUri = x.FirstOrDefault(y => modelTypes.Any(z => y.Key.EndsWith(z)) && y.Key != $"{x.Key}/").Uri,
+                    ThumbnailUri = x.FirstOrDefault(y => !modelTypes.Any(z => y.Key.EndsWith(z)) && y.Key != $"{x.Key}/").Uri,
                     Name = x.Key,
                 }).ToList();
         }
