@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.41.1" />
+    <PackageReference Include="Mailkit" Version="2.4.0.1" />
   </ItemGroup>
 
   <ItemGroup>

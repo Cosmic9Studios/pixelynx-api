@@ -19,6 +19,7 @@ All the default data is set for you via the Vagrantfile so you just need to run 
 
 ### Running the Application
 
+1. Add the ASPNETCORE_ENVIRONMENT variable and set the value to `Development`
 1. Run the application either through your IDE or by running `dotnet run` in the parent directory
 2. Navigate to http://localhost:5000/graphiql and run the following graphql query
 
@@ -38,10 +39,10 @@ query {
 ### Migrations 
 
 Whenever you make a change to a db entity you need to make a migration. This migration will be used to update the database to reflect the changes made to the entity. 
+In order to create migrations you must first run: `dotnet tool install --global dotnet-ef` to install the entity framework cmd line tools.
 
 To create a migration cd into the `Pixelynx.Data` folder and run 
 
-`pwsh addMigration.ps1 ${MigrationName}` OR `powershell addMigration.ps1 ${MigrationName}` -- Replace `MigrationName` with the name of your migration 
-Ex: `pwsh addMigration.ps1 AddedGroupTable`
+`pwsh addMigration.ps1 ${MigrationName}` OR `powershell -ExecutionPolicy Bypass -File addMigration.ps1 ${MigrationName}` -- Replace `MigrationName` with the name of your migration Ex: `pwsh addMigration.ps1 AddedGroupTable`
 
 Migrations will automatically be applied once you run the code, but if you want to apply them before then run the `updateDatabase.ps1` script.
