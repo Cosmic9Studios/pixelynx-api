@@ -1,18 +1,7 @@
 {
   "plugins": [
-    "@semantic-release/commit-analyzer",
-    ["@semantic-release/release-notes-generator", {
-      "preset": "angular",
-      "parserOpts": {
-        "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
-      },
-      "writerOpts": {
-        "commitsSort": ["subject", "scope"]
-      }
-    }],
-    "@semantic-release/github",
-    ["@semantic-release/exec", {
-      "publishCmd": "./deployment/publish.sh v${nextRelease.version}"
-    }],
+    '@semantic-release/commit-analyzer',
+    '@semantic-release/release-notes-generator',
+    '@semantic-release/github'
   ]
 }

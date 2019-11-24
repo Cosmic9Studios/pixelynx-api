@@ -7,7 +7,7 @@ cat > ./terraform.tfvars <<- EOM
 vars = {
     version = "${GITHUB_REF:10}"
     docker_user = "phenry20"
-    docker_pass = "$CI_TOKEN"
+    docker_pass = "$DOCKER_TOKEN"
 }
 EOM
 

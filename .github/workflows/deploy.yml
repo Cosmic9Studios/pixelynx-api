@@ -2,8 +2,8 @@ name: 'Deploy'
 on: ['deployment']
 
 jobs:
-  deploy:
-    if: contains(github.ref, 'refs/tags')
+  deploy_staging:
+    if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'staging'
     runs-on: ubuntu-latest
     container: cytopia/terragrunt
     steps:
@@ -12,8 +12,46 @@ jobs:
     - name: Add GPG
       run: apk add gnupg
 
-    - name: Deploy Production
+    - name: Deploy
       env:
-        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
-      run: deployment/prod/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+      run: deployment/staging/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+
+    - name: Update deployment status
+      uses: bobheadxi/deployments@master
+      if: always()
+      with:
+        step: finish
+        token: ${{ secrets.GITHUB_TOKEN }}
+        env: staging
+        env_url: https://staging.pixelynx.com/api
+        status: ${{ job.status }}
+        deployment_id: ${{ github.event.deployment.id }}
+  
+  deploy_production:
+    if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'production'
+    runs-on: ubuntu-latest
+    container: cytopia/terragrunt
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Add GPG
+      run: apk add gnupg
+
+    - name: Deploy
+      env:
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
+      run: deployment/production/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+
+    - name: Update deployment status
+      uses: bobheadxi/deployments@master
+      if: always()
+      with:
+        step: finish
+        token: ${{ secrets.GITHUB_TOKEN }}
+        env: staging
+        env_url: https://pixelynx.com/api
+        status: ${{ job.status }}
+        deployment_id: ${{ github.event.deployment.id }}
