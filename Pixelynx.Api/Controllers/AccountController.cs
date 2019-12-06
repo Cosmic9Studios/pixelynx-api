@@ -189,7 +189,7 @@ namespace Pixelynx.Api.Controllers
         public async Task<IActionResult> ForgotPassword([FromServices] IEmailService emailService, [FromQuery] string email)
         {
             var user = await userManager.FindByEmailAsync(email);
-            var code = HttpUtility.UrlEncode(await userManager .GeneratePasswordResetTokenAsync(user));
+            var code = HttpUtility.UrlEncode(await userManager.GeneratePasswordResetTokenAsync(user));
             var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.ResetPassword);
 
             emailService.SendEmail(user.Email,
