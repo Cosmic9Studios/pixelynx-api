@@ -111,7 +111,8 @@ namespace Pixelynx.Api.Controllers
                 LastName = request.LastName
             };
 
-            try {
+            try 
+            {
                 result = await userManager.CreateAsync(user, request.Password);
                 if (result.Succeeded)
                 {
