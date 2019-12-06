@@ -193,7 +193,7 @@ namespace Pixelynx.Api.Controllers
             var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.ResetPassword);
 
             emailService.SendEmail(user.Email,
-                "Reset your password",
+                "Pixelynx - Reset your password",
                 $"Reset your account password by clicking this <a href=\"{confirmationUrl}\">link</a>."
             );
 
@@ -222,7 +222,7 @@ namespace Pixelynx.Api.Controllers
             var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.Account);
 
             emailService.SendEmail(user.Email, 
-                "Confirm your account", 
+                "Pixelynx - Confirm your account", 
                 $"Please confirm your account by clicking this <a href=\"{confirmationUrl}\">link</a>."
             );
         }
