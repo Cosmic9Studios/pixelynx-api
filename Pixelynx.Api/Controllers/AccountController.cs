@@ -1,16 +1,16 @@
 using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
+using System.Web;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Pixelynx.Api.Helpers;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
@@ -21,15 +21,44 @@ using Pixelynx.Logic.Interfaces;
 namespace Pixelynx.Api.Controllers
 {
     [Route("account")]
-    public class AccountController : Controller
+    public class AccountController : ControllerBase
     {
         private ILogger<AccountController> logger;
         private UserManager<UserEntity> userManager;
 
+        #region Constructors
         public AccountController(ILogger<AccountController> logger, UserManager<UserEntity> userManager)
         {
             this.logger = logger;
             this.userManager = userManager;
+        }
+        #endregion
+
+        #region Enums
+        public enum ConfirmationType 
+        {
+            Account, 
+            ResetPassword
+        }
+        #endregion
+
+        #region Public Methods
+        [HttpGet, Route("me")]
+        public async Task<ActionResult<LoginResponse>> GetUserData(LoginRequest request)
+        {
+            var email = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(new UserDataResponse
+            {
+                UserName = user.UserName,
+                FirstName = user.FirstName, 
+                LastName = user.LastName
+            });
         }
 
         [HttpPost, Route("login"), AllowAnonymous]
@@ -42,17 +71,20 @@ namespace Pixelynx.Api.Controllers
             logger.LogInformation($"Attempting login for {request.Email}");
 
             var user = await userManager.FindByEmailAsync(request.Email);
+            if (!user.EmailConfirmed) 
+            {
+                return Unauthorized();
+            }
+
             var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
             if (result.Succeeded)
             {
+                await userManager.AddClaimAsync(user, new Claim(ClaimTypes.Email, user.Email));
                 var token = await user.GenerateToken(userManager, authSettings.Value.JWTSecret);
                 return new LoginResponse 
                 {
-                    Id = user.Id, 
-                    Token = token, 
-                    Email = user.Email, 
-                    UserName = user.UserName
+                    Token = token
                 };
             }
 
@@ -64,60 +96,134 @@ namespace Pixelynx.Api.Controllers
         {
             logger.LogInformation($"Logout {User.Identity.Name}");
             await signInManager.SignOutAsync();
-            return NoContent();
+            return Ok();
         }
 
         [HttpPost, Route("register")]
-        public async Task<IActionResult> Register([FromServices] IEmailService emailService, [FromBody] LoginRequest request)
+        public async Task<IActionResult> Register([FromServices] IEmailService emailService, [FromBody] RegistrationRequest request)
         {
-            var user = new UserEntity { UserName = request.Email, Email = request.Email };
-            var result = await userManager.CreateAsync(user, request.Password);
-            if (result.Succeeded)
-            {
-                await SendRegistrationEmail(emailService, user, request);
-                return NoContent();
-            }
+            IdentityResult result = null;
+            var user = new UserEntity 
+            { 
+                UserName = request.UserName,
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName
+            };
 
-            return BadRequest(new { Message = "Unable to create user", Errors = result.Errors });
+            try {
+                result = await userManager.CreateAsync(user, request.Password);
+                if (result.Succeeded)
+                {
+                    await SendRegistrationEmail(emailService, user);
+                    return NoContent();
+                }
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
+            
+            return BadRequest(result?.Errors);
         }
 
         [HttpPost, Route("resendemail")]
-        public async Task<IActionResult> ResendEmail([FromServices] IEmailService emailService, [FromBody] LoginRequest request)
+        public async Task<IActionResult> ResendEmail([FromServices] IEmailService emailService, [FromQuery] string userId = "", string email = "")
         {
-            var user = await userManager.FindByEmailAsync(request.Email);
-            await SendRegistrationEmail(emailService, user, request);
-
-            return NoContent();
-        }
-
-        [HttpGet, Route("confirmemail")]
-        public async Task<IActionResult> ConfirmEmail([FromServices] IEmailService emailService, string userId, string code)
-        {
-            var user = await userManager.FindByIdAsync(userId);
-            var result = await userManager.ConfirmEmailAsync(user, code);
-            
-            if (result.Succeeded)
+            UserEntity user = null;
+            if (!string.IsNullOrEmpty(userId))
             {
-                await userManager.AddClaimAsync(user, new Claim("scope", "assets:read assets:write"));
-                return Ok();
+                user = await userManager.FindByIdAsync(userId);
+            }
+            else if (!string.IsNullOrEmpty(email))
+            {
+                user = await userManager.FindByEmailAsync(email);
             }
 
-            return BadRequest(result.Errors);
+            if (user != null)
+            {
+                await SendRegistrationEmail(emailService, user); 
+            }
+
+            return Ok();
         }
 
-        #region Private Methods. 
-        private async Task SendRegistrationEmail(IEmailService emailService, UserEntity user, LoginRequest request)
+        [HttpGet, Route("confirm")]
+        public async Task<IActionResult> ConfirmAccount([FromServices] IEmailService emailService, [FromQuery] string userId, [FromQuery] string code, string type)
         {
-            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}";
-            var callbackUrl = Url.Action(
-                "ConfirmEmail", "Account", 
-                new { userId = user.Id, code = code }
+            var errors = new List<string>();
+            if (Enum.TryParse<ConfirmationType>(type, true, out var confirmationType))
+            {
+                var user = await userManager.FindByIdAsync(userId);
+                if (confirmationType == ConfirmationType.Account)
+                {
+                    var result = await userManager.ConfirmEmailAsync(user, code);  
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddClaimAsync(user, new Claim("scope", "assets:read assets:write"));
+                    }
+                    else 
+                    {
+                        errors.AddRange(result.Errors.Select(x => x.Description));
+                    }
+                }
+                else if (confirmationType == ConfirmationType.ResetPassword)
+                {
+                    var result = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", code);
+                    if (!result)
+                    {
+                        errors.Add("Invalid password reset token");
+                    }
+                }
+            }
+
+            if (errors.Any())
+            {
+                return BadRequest(errors);
+            }
+            
+            return Ok();
+        }
+
+        [HttpPost, Route("forgotpassword")]
+        public async Task<IActionResult> ForgotPassword([FromServices] IEmailService emailService, [FromQuery] string email)
+        {
+            var user = await userManager.FindByEmailAsync(email);
+            var code = HttpUtility.UrlEncode(await userManager .GeneratePasswordResetTokenAsync(user));
+            var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.ResetPassword);
+
+            emailService.SendEmail(user.Email,
+                "Reset your password",
+                $"Reset your account password by clicking this <a href=\"{confirmationUrl}\">link</a>."
             );
 
-            emailService.SendEmail(request.Email, 
+            return Ok();
+        }
+
+        [HttpPost, Route("resetpassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            var user = await userManager.FindByIdAsync(request.UserId);
+            var result = await userManager.ResetPasswordAsync(user, HttpUtility.UrlDecode(request.Code), request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok();
+        }
+        #endregion
+
+        #region Private Methods
+        private async Task SendRegistrationEmail(IEmailService emailService, UserEntity user)
+        {
+            var code = HttpUtility.UrlEncode(await userManager.GenerateEmailConfirmationTokenAsync(user));
+            var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.Account);
+
+            emailService.SendEmail(user.Email, 
                 "Confirm your account", 
-                $"Please confirm your account by clicking this link: <a href=\"{baseUrl}{callbackUrl}\">link</a>"
+                $"Please confirm your account by clicking this <a href=\"{confirmationUrl}\">link</a>."
             );
         }
         #endregion
