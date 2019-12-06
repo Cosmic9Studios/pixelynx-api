@@ -12,6 +12,6 @@ terraform {
 }
 
 inputs = {
-  address = "https://nomad.wingedkraken.com"
+  address = "https://nomad.staging.pixelynx.com"
   file_path = "${get_terragrunt_dir()}/../files/api.hcl"
 }

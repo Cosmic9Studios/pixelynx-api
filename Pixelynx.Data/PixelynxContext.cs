@@ -17,5 +17,19 @@ namespace Pixelynx.Data
         {
         }
         #endregion
+
+
+        protected override void OnModelCreating( ModelBuilder builder ) 
+        {
+            base.OnModelCreating( builder );;
+
+            builder.Entity<UserEntity>().ToTable("Users");
+            builder.Entity<Role>().ToTable("Roles");
+            builder.Entity<UserRole>().ToTable("UserRoles");
+            builder.Entity<UserToken>().ToTable("UserTokens");
+            builder.Entity<UserLogin>().ToTable("UserLogins");
+            builder.Entity<RoleClaim>().ToTable("RoleClaims");
+            builder.Entity<UserClaim>().ToTable("UserClaims");
+        }       
     }
 }

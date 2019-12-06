@@ -81,7 +81,7 @@ namespace Pixelynx.Data.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Models.Role", b =>
@@ -108,7 +108,7 @@ namespace Pixelynx.Data.Migrations
                         .IsUnique()
                         .HasName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles");
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Models.RoleClaim", b =>
@@ -131,7 +131,7 @@ namespace Pixelynx.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims");
+                    b.ToTable("RoleClaims");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Models.UserClaim", b =>
@@ -154,7 +154,7 @@ namespace Pixelynx.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims");
+                    b.ToTable("UserClaims");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Models.UserLogin", b =>
@@ -175,7 +175,7 @@ namespace Pixelynx.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins");
+                    b.ToTable("UserLogins");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Models.UserRole", b =>
@@ -190,7 +190,7 @@ namespace Pixelynx.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles");
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Models.UserToken", b =>
@@ -209,7 +209,7 @@ namespace Pixelynx.Data.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens");
+                    b.ToTable("UserTokens");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Models.RoleClaim", b =>
