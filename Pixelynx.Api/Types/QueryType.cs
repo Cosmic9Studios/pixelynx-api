@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace Pixelynx.Api.Types
         {
             return (await blobStorage.ListObjects(assetstoreSettings.Value.BucketName))
                 .GroupBy(x => x.Key.Split('/')[0])
-                .Where(x => string.IsNullOrWhiteSpace(filter) || x.Key.Contains(filter))
+                .Where(x => string.IsNullOrWhiteSpace(filter) || x.Key.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 .Select(x => new Asset 
                 {
                     Uri = x.FirstOrDefault(y => modelTypes.Any(z => y.Key.EndsWith(z))).Uri,
