@@ -23,7 +23,7 @@ job "pixelynx-api" {
             driver = "docker"
 
             config {
-                image = "https://docker.pkg.github.com/phenry20/pixelynx-api/pixelynx-api:${version}"
+                image = "phenry20/pixelynx:api-${version}"
                 auth {
                     username = "${docker_user}"
                     password = "${docker_pass}"
