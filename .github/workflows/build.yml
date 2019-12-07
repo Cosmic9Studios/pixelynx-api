@@ -24,7 +24,7 @@ jobs:
       env:
         CONTAINER_RELEASE_IMAGE: phenry20/pixelynx
       run: |
-        docker build -t $CONTAINER_RELEASE_IMAGE:latest .
+        docker build -t $CONTAINER_RELEASE_IMAGE:latest-api .
     
     - name: Use Node
       uses: actions/setup-node@v1
@@ -44,6 +44,6 @@ jobs:
         CONTAINER_RELEASE_IMAGE: phenry20/pixelynx
       run: |
         echo ${{ secrets.DOCKER_TOKEN }} | docker login --username "phenry20" --password-stdin
-        docker tag $CONTAINER_RELEASE_IMAGE:latest $CONTAINER_RELEASE_IMAGE:api-v$RELEASE_VERSION
+        docker tag $CONTAINER_RELEASE_IMAGE:latest-api $CONTAINER_RELEASE_IMAGE:api-v$RELEASE_VERSION
         docker push $CONTAINER_RELEASE_IMAGE:api-v$RELEASE_VERSION
-        docker push $CONTAINER_RELEASE_IMAGE:latest
+        docker push $CONTAINER_RELEASE_IMAGE:latest-api
