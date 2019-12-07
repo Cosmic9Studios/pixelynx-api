@@ -22,7 +22,7 @@ jobs:
 
     - name: Build
       env:
-        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/pixelynx-api/pixelynx-api
+        CONTAINER_RELEASE_IMAGE: phenry20/pixelynx
       run: |
         docker build -t $CONTAINER_RELEASE_IMAGE:latest .
     
@@ -31,13 +31,19 @@ jobs:
       with:
         node-version: '10.x'
     
-    - name: Push Docker Image
+    - name: Semantic Release
       if: github.ref == 'refs/heads/master'
+      uses: codfish/semantic-release-action@master
+      id: semantic
       env:
-        CONTAINER_RELEASE_IMAGE: docker.pkg.github.com/phenry20/pixelynx-api/pixelynx-api
         GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
-        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+    
+    - name: Push Docker Image
+      if: steps.semantic.outputs.new-release-published == 'true'
+      env:
+        CONTAINER_RELEASE_IMAGE: phenry20/pixelynx
       run: |
-        npm install -g semantic-release@15.13.24 @semantic-release/exec @semantic-release/commit-analyzer @semantic-release/github
-        echo ${{ secrets.CI_TOKEN }} | docker login docker.pkg.github.com --username "phenry20" --password-stdin
-        npx semantic-release -b master
+        echo ${{ secrets.DOCKER_TOKEN }} | docker login --username "phenry20" --password-stdin
+        docker tag $CONTAINER_RELEASE_IMAGE:latest $CONTAINER_RELEASE_IMAGE:api-v$RELEASE_VERSION
+        docker push $CONTAINER_RELEASE_IMAGE:api-v$RELEASE_VERSION
+        docker push $CONTAINER_RELEASE_IMAGE:latest

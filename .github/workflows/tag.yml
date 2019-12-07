@@ -16,6 +16,6 @@ jobs:
 
     - name: Release
       env:
-        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx-staging.json"
       run: deployment/staging/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}

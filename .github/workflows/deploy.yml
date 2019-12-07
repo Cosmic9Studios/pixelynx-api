@@ -14,7 +14,7 @@ jobs:
 
     - name: Deploy Production
       env:
-        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx-staging.json"
       run: deployment/staging/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
   
@@ -30,6 +30,6 @@ jobs:
 
     - name: Deploy Production
       env:
-        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
       run: deployment/production/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
