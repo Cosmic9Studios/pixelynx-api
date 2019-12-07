@@ -2,8 +2,24 @@ name: 'Deploy'
 on: ['deployment']
 
 jobs:
-  deploy:
-    if: contains(github.ref, 'refs/tags')
+  deploy_staging:
+    if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'staging'
+    runs-on: ubuntu-latest
+    container: cytopia/terragrunt
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Add GPG
+      run: apk add gnupg
+
+    - name: Deploy Production
+      env:
+        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx-staging.json"
+      run: deployment/staging/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+  
+  deploy_production:
+    if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'production'
     runs-on: ubuntu-latest
     container: cytopia/terragrunt
     steps:
@@ -16,4 +32,4 @@ jobs:
       env:
         CI_TOKEN: ${{ secrets.CI_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
-      run: deployment/prod/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+      run: deployment/production/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}

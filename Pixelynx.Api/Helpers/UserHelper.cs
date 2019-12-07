@@ -5,10 +5,13 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using MoreLinq;
 using Pixelynx.Data.Entities;
+using static Pixelynx.Api.Controllers.AccountController;
 
 namespace Pixelynx.Api.Helpers
 {
@@ -28,6 +31,13 @@ namespace Pixelynx.Api.Helpers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public static string GenerateConfirmationUrl(this UserEntity user, HttpRequest request, string code, ConfirmationType confirmationType)
+        {
+            RequestHeaders header = request.GetTypedHeaders();
+            var baseUrl = $"{request.Scheme}://{header.Referer.Authority}";
+            return $"{baseUrl}/account/confirm?userId={user.Id}&code={code}&type={confirmationType.ToString()}";
         }
     }
 }
