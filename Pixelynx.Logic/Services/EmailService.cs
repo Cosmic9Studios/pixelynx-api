@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -42,6 +45,16 @@ namespace Pixelynx.Logic.Services
 				client.Send(message);
                 client.Disconnect(true);
 			}
+        }
+
+        public void SendEmailFromTemplate(string to, string subject, string templateName, Dictionary<string, string> variables)
+        {
+            var fileText = File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/EmailTemplates/{templateName}.html");
+            foreach (var variable in variables)
+            {
+                fileText = fileText.Replace($"[{variable.Key}]", variable.Value);
+            }
+            SendEmail(to, subject, fileText);
         }
     }
 }
