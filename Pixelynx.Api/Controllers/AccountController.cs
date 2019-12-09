@@ -193,10 +193,11 @@ namespace Pixelynx.Api.Controllers
             var code = HttpUtility.UrlEncode(await userManager.GeneratePasswordResetTokenAsync(user));
             var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.ResetPassword);
 
-            emailService.SendEmail(user.Email,
-                "Pixelynx - Reset your password",
-                $"Reset your account password by clicking this <a href=\"{confirmationUrl}\">link</a>."
-            );
+            emailService.SendEmailFromTemplate(user.Email, "Pixelynx - Forgot Password", "ForgotPassword", new Dictionary<string, string> 
+            {
+                ["Sender"] = user.FirstName,
+                ["Button_Url"] = confirmationUrl
+            });
 
             return Ok();
         }
@@ -221,11 +222,11 @@ namespace Pixelynx.Api.Controllers
         {
             var code = HttpUtility.UrlEncode(await userManager.GenerateEmailConfirmationTokenAsync(user));
             var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.Account);
-
-            emailService.SendEmail(user.Email, 
-                "Pixelynx - Confirm your account", 
-                $"Please confirm your account by clicking this <a href=\"{confirmationUrl}\">link</a>."
-            );
+            emailService.SendEmailFromTemplate(user.Email, "Pixelynx - Confirm your account", "Register", new Dictionary<string, string> 
+            {
+                ["Sender"] = user.FirstName,
+                ["Button_Url"] = confirmationUrl
+            });
         }
         #endregion
     }

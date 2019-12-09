@@ -13,4 +13,8 @@
     <ProjectReference Include="..\Pixelynx.Data\Pixelynx.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="EmailTemplates\**\*.*" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
 </Project>
