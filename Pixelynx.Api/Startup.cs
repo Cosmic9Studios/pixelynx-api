@@ -54,6 +54,7 @@ namespace Pixelynx.Api
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
 
             // Services
+            services.AddScoped<UnitOfWork, UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString));
             
