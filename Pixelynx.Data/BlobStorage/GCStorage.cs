@@ -44,12 +44,12 @@ namespace Pixelynx.Data.BlobStorage
             }));
         }
 
-        public async Task<string> UploadFileToBucket(string bucket, string directory, string fileName, byte[] fileContent)
+        public async Task<bool> UploadFileToBucket(string bucket, string directory, string fileName, byte[] fileContent)
         {
             using (var ms = new MemoryStream(fileContent))
             {
                 var response = await client.UploadObjectAsync(bucket, $"{directory}/{fileName}", null, ms);
-                return response.Id;
+                return !string.IsNullOrWhiteSpace(response.Id);
             }
         }
         #endregion

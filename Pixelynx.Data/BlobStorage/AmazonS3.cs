@@ -55,7 +55,7 @@ namespace Pixelynx.Data.BlobStorage
             return objectList;
         }
 
-        public async Task<string> UploadFileToBucket(string bucket, string directory, string fileName, byte[] fileContent)
+        public async Task<bool> UploadFileToBucket(string bucket, string directory, string fileName, byte[] fileContent)
         {
             var request = new PutObjectRequest
             {
@@ -69,7 +69,7 @@ namespace Pixelynx.Data.BlobStorage
 
                 var response = await client.PutObjectAsync(request);
 
-                return response.HttpStatusCode == System.Net.HttpStatusCode.OK ? "Success" : "";
+                return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
             }
         }
         #endregion

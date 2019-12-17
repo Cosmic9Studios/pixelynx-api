@@ -56,7 +56,7 @@ namespace Pixelynx.Api.Types
             var storageId = Guid.NewGuid();
 
             var result = await blobStorage.UploadFileToBucket(assetstoreSettings.Value.BucketName, storageId.ToString(), $"asset{extension}", fileContent);
-            if (string.IsNullOrWhiteSpace(result))
+            if (!result)
             {
                 return false;
             }
