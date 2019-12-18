@@ -12,6 +12,16 @@ using Pixelynx.Data.Models;
 
 namespace Pixelynx.Api.Types
 {
+    public class QueryType : ObjectType<Query>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+        {
+            descriptor.Field(x => x.Hello()).Type<NonNullType<StringType>>();
+            descriptor.Field(x => x.Me(default)).Authorize();
+            descriptor.Field(x => x.GetAssets(default, default, default));
+        }
+    }
+    
     public class Query
     {
         private UnitOfWork unitOfWork;
@@ -43,38 +53,6 @@ namespace Pixelynx.Api.Types
                         Name = x.Name
                     };
                 }).ToList();
-        }
-
-        public async Task<bool> UploadAsset(
-            [Service]IBlobStorage blobStorage,
-            [Service]IOptions<AssetstoreSettings> assetstoreSettings,
-            string fileName,
-            byte[] fileContent)
-        {
-            var extension = System.IO.Path.GetExtension(fileName);
-            var name = System.IO.Path.GetFileNameWithoutExtension(fileName);
-            var storageId = Guid.NewGuid();
-
-            var result = await blobStorage.UploadFileToBucket(assetstoreSettings.Value.BucketName, storageId.ToString(), $"asset{extension}", fileContent);
-            if (!result)
-            {
-                return false;
-            }
-
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset { Name = name }, assetstoreSettings.Value.BucketName, storageId);
-            await unitOfWork.SaveChanges();
-
-            return true;
-        }
-    }
-
-    public class QueryType : ObjectType<Query>
-    {
-        protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-        {
-            descriptor.Field(x => x.Hello()).Type<NonNullType<StringType>>();
-            descriptor.Field(x => x.Me(default)).Authorize();
-            descriptor.Field(x => x.GetAssets(default, default, default));
         }
     }
 }
