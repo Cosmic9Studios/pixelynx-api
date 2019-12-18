@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Pixelynx.Api.Settings;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Amazon.S3.Model;
+using System.IO;
 
 namespace Pixelynx.Data.BlobStorage
 {
@@ -22,9 +19,6 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Constructors.
-        /// <summary>
-        /// Initializes a new instance of the <cref="GCStorage"/> class.
-        /// </summary>
         public GCStorage(string accountData)
         {
             client = StorageClient.Create();
@@ -41,23 +35,22 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Public methods.
-        /// <summary>
-        /// Lists all the objects in the bucket.
-        /// </summary>
-        /// <param name="bucket">The name of the bucket to parse</param>
-        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket)
+        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "")
         {
-            return await Task.Run(() => client.ListObjects(bucket).Select(x => new BlobObject
+            return await Task.Run(() => client.ListObjects(bucket, directory).Select(x => new BlobObject
             {
                 Key = x.Name,
                 Uri = urlSigner.Sign(bucket, x.Name, TimeSpan.FromHours(1), HttpMethod.Get)
             }));
         }
 
-        public async Task<string> UploadFileToBucket(string bucket, string fileName, byte[] fileContent)
+        public async Task<bool> UploadFileToBucket(string bucket, string directory, string fileName, byte[] fileContent)
         {
-            // TODO: Write GC Storage upload
-            return await Task.Run(() => "");
+            using (var ms = new MemoryStream(fileContent))
+            {
+                var response = await client.UploadObjectAsync(bucket, $"{directory}/{fileName}", null, ms);
+                return !string.IsNullOrWhiteSpace(response.Id);
+            }
         }
         #endregion
     }

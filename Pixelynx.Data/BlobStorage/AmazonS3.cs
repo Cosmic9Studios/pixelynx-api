@@ -18,12 +18,6 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Constructors
-        /// <summary>
-        /// The instance of the <cref="AmazonS3" /> class.
-        /// </summary>
-        /// <param name="address">The address of the s3 server</param>
-        /// <param name="accessKey">The s3 access key</param>
-        /// <param name="secretKey">The s3 secret key</param>
         public AmazonS3(string address, string accessKey, string secretKey)
         {
             var config = new AmazonS3Config
@@ -38,14 +32,10 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Public methods.
-        /// <summary>
-        /// Lists all the objects in the bucket.
-        /// </summary>
-        /// <param name="bucket">The name of the bucket to parse</param>
-        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket)
+        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "")
         {
             var objectList = new List<BlobObject>();
-            var listObjectsResponse = await client.ListObjectsAsync(bucket);
+            var listObjectsResponse = await client.ListObjectsAsync(bucket, directory);
 
             foreach (var obj in listObjectsResponse.S3Objects)
             {
@@ -65,19 +55,8 @@ namespace Pixelynx.Data.BlobStorage
             return objectList;
         }
 
-        /// <summary>
-        /// Uploads a file to a specified bucket.
-        /// </summary>
-        /// <param name="bucket">The name of the bucket to place the file</param>
-        /// <param name="file">The file data to be uploaded</param>
-        /// <param name="file">The name and extension of the file being uploaded</param>
-        public async Task<string> UploadFileToBucket(string bucket, string fileName, byte[] fileContent)
+        public async Task<bool> UploadFileToBucket(string bucket, string directory, string fileName, byte[] fileContent)
         {
-            // TODO: This needs to be unique and specific to the model and easily
-            // referenced to change the files in the directory at a later point. 
-            // Probably based on a storage ID.
-            var directory = fileName.Split('.').First();
-
             var request = new PutObjectRequest
             {
                 BucketName = bucket,
@@ -90,7 +69,7 @@ namespace Pixelynx.Data.BlobStorage
 
                 var response = await client.PutObjectAsync(request);
 
-                return "Upload Complete";
+                return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
             }
         }
         #endregion

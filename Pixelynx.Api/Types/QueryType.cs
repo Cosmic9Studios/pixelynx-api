@@ -8,11 +8,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Pixelynx.Api.Settings;
 using Pixelynx.Data.BlobStorage;
+using Pixelynx.Data.Models;
 
 namespace Pixelynx.Api.Types
 {
     public class Query
     {
+        private UnitOfWork unitOfWork;
+
+        public Query(UnitOfWork unitOfWork)
+        {
+            this.unitOfWork = unitOfWork;
+        }
+
         private readonly IEnumerable<string> modelTypes = new List<string> { ".glb", ".gltf" };
 
         public string Hello() => "world";
@@ -24,26 +32,39 @@ namespace Pixelynx.Api.Types
             [Service]IOptions<AssetstoreSettings> assetstoreSettings,
             string filter)
         {
-            return (await blobStorage.ListObjects(assetstoreSettings.Value.BucketName))
-                .GroupBy(x => x.Key.Split('/')[0])
-                .Where(x => string.IsNullOrWhiteSpace(filter) || x.Key.Contains(filter, StringComparison.OrdinalIgnoreCase))
-                .Select(x => new Asset
+            return (await unitOfWork.AssetRepository.Value.GetAllAssets())
+                .Where(x => string.IsNullOrWhiteSpace(filter) || x.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                .Select(x => 
                 {
-                    Uri = x.FirstOrDefault(y => modelTypes.Any(z => y.Key.EndsWith(z))).Uri,
-                    ThumbnailUri = x.FirstOrDefault(y => !modelTypes.Any(z => y.Key.EndsWith(z)) && y.Key != $"{x.Key}/").Uri,
-                    Name = x.Key,
+                    return new Asset
+                    {
+                        Uri = x.PreviewUri ?? x.Uri,
+                        ThumbnailUri = x.ThumbnailUri,
+                        Name = x.Name
+                    };
                 }).ToList();
         }
 
-        public async Task<string> Upload(
+        public async Task<bool> UploadAsset(
             [Service]IBlobStorage blobStorage,
             [Service]IOptions<AssetstoreSettings> assetstoreSettings,
             string fileName,
             byte[] fileContent)
         {
-            var response = await blobStorage.UploadFileToBucket(assetstoreSettings.Value.BucketName, fileName, fileContent);
+            var extension = System.IO.Path.GetExtension(fileName);
+            var name = System.IO.Path.GetFileNameWithoutExtension(fileName);
+            var storageId = Guid.NewGuid();
 
-            return response;
+            var result = await blobStorage.UploadFileToBucket(assetstoreSettings.Value.BucketName, storageId.ToString(), $"asset{extension}", fileContent);
+            if (!result)
+            {
+                return false;
+            }
+
+            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset { Name = name }, assetstoreSettings.Value.BucketName, storageId);
+            await unitOfWork.SaveChanges();
+
+            return true;
         }
     }
 
