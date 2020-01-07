@@ -64,6 +64,7 @@ namespace Pixelynx.Api
                 .UseKestrel(options =>
                 {   
                     options.Listen(IPAddress.Any, 5000, listenOptions => {});
+                    options.Limits.MaxRequestBodySize = null;
                 })
                 .UseStartup<Startup>();
     }
