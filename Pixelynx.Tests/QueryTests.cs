@@ -1,10 +1,9 @@
-using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Pixelynx.Api.Settings;
 using Pixelynx.Api.Types;
 using Pixelynx.Data.Models;
+using Pixelynx.Data.Settings;
 using Pixelynx.Tests.Factories;
 using Pixelynx.Tests.Mocks;
 using Xunit;
@@ -34,8 +33,8 @@ namespace Pixelynx.Tests
             await blobStorage.UploadFileToBucket("", storageId2, "thumbnail.png", null);
             await blobStorage.UploadFileToBucket("", storageId2, "watermark.glb", null);
 
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset { Id = Guid.Parse(storageId1), Name = "robot" }, "");
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset { Id = Guid.Parse(storageId2), Name = "foo" }, "");
+            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset("robot", Core.AssetType.Model, storageId1));
+            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset("foo", Core.AssetType.Model, storageId2));
             await unitOfWork.SaveChanges();
         }
 
@@ -48,7 +47,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "");
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "", "", "");
 
             result.Should().HaveCount(2);
         }
@@ -57,7 +56,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldOnlyReturnAssetsThatContainFilter()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "robot");
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "robot", "", "");
 
             result.Should().HaveCount(1);
         }
