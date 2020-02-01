@@ -44,7 +44,7 @@ namespace Pixelynx.Api.Controllers
 
         #region Public Methods
         [HttpGet, Route("me")]
-        public async Task<ActionResult<LoginResponse>> GetUserData(LoginRequest request)
+        public async Task<ActionResult<LoginResponse>> GetUserData()
         {
             var email = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = await userManager.FindByEmailAsync(email);
