@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Pixelynx.Api.Settings;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Models;
+using Pixelynx.Data.Settings;
 
 namespace Pixelynx.Api.Types
 {
@@ -18,7 +19,7 @@ namespace Pixelynx.Api.Types
         {
             descriptor.Field(x => x.Hello()).Type<NonNullType<StringType>>();
             descriptor.Field(x => x.Me(default)).Authorize();
-            descriptor.Field(x => x.GetAssets(default, default, default));
+            descriptor.Field(x => x.GetAssets(default, default, default, default, default));
         }
     }
     
@@ -39,17 +40,19 @@ namespace Pixelynx.Api.Types
 
         public async Task<List<Asset>> GetAssets(
             [Service]IBlobStorage blobStorage,
-            [Service]IOptions<AssetstoreSettings> assetstoreSettings,
-            string filter)
+            [Service]IOptions<StorageSettings> storageSettings,
+            string filter,
+            string type, 
+            string parentId)
         {
-            return (await unitOfWork.AssetRepository.Value.GetAllAssets())
-                .Where(x => string.IsNullOrWhiteSpace(filter) || x.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                return (await unitOfWork.AssetRepository.Value.FindAssets(filter, type, Guid.TryParse(parentId, out  var guid) ? guid : Guid.Empty))
                 .Select(x => 
                 {
                     return new Asset
                     {
-                        Uri = x.PreviewUri ?? x.Uri,
-                        ThumbnailUri = x.ThumbnailUri,
+                        Id = x.Id,
+                        Uri = x.Uri,
+                        ThumbnailUri = x.Thumbnail?.Uri,
                         Name = x.Name
                     };
                 }).ToList();

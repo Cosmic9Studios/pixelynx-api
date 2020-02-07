@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Moq;
-using Pixelynx.Api.Settings;
 using Pixelynx.Api.Types;
-using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Models;
+using Pixelynx.Data.Settings;
 using Pixelynx.Tests.Factories;
 using Pixelynx.Tests.Mocks;
 using Xunit;
@@ -37,8 +33,8 @@ namespace Pixelynx.Tests
             await blobStorage.UploadFileToBucket("", storageId2, "thumbnail.png", null);
             await blobStorage.UploadFileToBucket("", storageId2, "watermark.glb", null);
 
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset { Name = "robot" }, "", Guid.Parse(storageId1));
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset { Name = "foo" }, "", Guid.Parse(storageId2));
+            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset("robot", Core.AssetType.Model, storageId1));
+            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset("foo", Core.AssetType.Model, storageId2));
             await unitOfWork.SaveChanges();
         }
 
@@ -51,7 +47,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new AssetstoreSettings()), "");
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "", "", "");
 
             result.Should().HaveCount(2);
         }
@@ -60,7 +56,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldOnlyReturnAssetsThatContainFilter()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new AssetstoreSettings()), "robot");
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "robot", "", "");
 
             result.Should().HaveCount(1);
         }

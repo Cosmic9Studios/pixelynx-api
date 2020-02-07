@@ -24,6 +24,7 @@ using Pixelynx.Data.Entities;
 using Pixelynx.Logic.Settings;
 using Pixelynx.Logic.Interfaces;
 using Pixelynx.Data.Models;
+using Pixelynx.Data.Settings;
 
 namespace Pixelynx.Api
 {
@@ -50,7 +51,7 @@ namespace Pixelynx.Api
 
             // IOptions
             services.Configure<AuthSettings>(Configuration.GetSection("Auth"));
-            services.Configure<AssetstoreSettings>(Configuration.GetSection("Assetstore"));
+            services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
 
             // Services

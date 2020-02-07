@@ -1,13 +1,13 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Pixelynx.Api.Requests;
-using Pixelynx.Api.Settings;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Models;
+using Pixelynx.Data.Settings;
+using glTFLoader;
 
 namespace Pixelynx.Api.Controllers
 {
@@ -23,30 +23,45 @@ namespace Pixelynx.Api.Controllers
             this.unitOfWork = unitOfWork;
         }
 
-        [HttpPost, Route("upload")]
-        public async Task<IActionResult> UploadMesh(
-            [FromServices]IOptions<AssetstoreSettings> assetstoreSettings,
-            [FromForm] UploadMeshRequest request
-        )
+        [HttpPost, Route("uploadAsset")]
+        public async Task<IActionResult> UploadModel(
+            [FromServices]IOptions<StorageSettings> storageSettings,
+            [FromServices]UnitOfWork unitOfWork,
+            [FromForm] UploadRequest request)
         {
-            var ms = new MemoryStream();
-            request.Asset.CopyTo(ms);
-            var contents = ms.ToArray();
+            try 
+            {
+                var fileName = System.IO.Path.GetTempPath() + Guid.NewGuid().ToString() + ".gltf";
+                var binaryFileName = Path.ChangeExtension(fileName, ".glb");
 
-            var extension = System.IO.Path.GetExtension(request.Asset.FileName);
-            var name = System.IO.Path.GetFileNameWithoutExtension(request.Asset.FileName);
-            var storageId = Guid.NewGuid();
+                var ms = new MemoryStream();
+                request.Data.CopyTo(ms);
+                System.IO.File.WriteAllBytes(fileName, ms.ToArray());
 
-            var result = await blobStorage.UploadFileToBucket(assetstoreSettings.Value.BucketName, storageId.ToString(), $"asset{extension}", contents);
-            if (!result)
+                Interface.Pack(fileName, binaryFileName);
+
+                var fileBytes = System.IO.File.ReadAllBytes(binaryFileName);
+            
+                System.IO.File.Delete(fileName);
+                System.IO.File.Delete(binaryFileName);
+
+                Enum.TryParse<Core.AssetType>(request.Type, true, out var assetType);
+                var asset = new Core.Asset(request.Name, assetType, fileBytes);
+
+                if (!string.IsNullOrWhiteSpace(request.ParentId))
+                {
+                    asset.Parent = await unitOfWork.AssetRepository.Value.GetAssetById(Guid.Parse(request.ParentId));
+                }
+
+                await unitOfWork.AssetRepository.Value.CreateAsset(asset);
+                await unitOfWork.SaveChanges();
+
+                return Ok(new { id = asset.Id });
+            }
+            catch 
             {
                 return BadRequest();
             }
-
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset { Name = name }, assetstoreSettings.Value.BucketName, storageId);
-            await unitOfWork.SaveChanges();
-
-            return Ok();
         }
     }
 }
