@@ -18,6 +18,6 @@ jobs:
       env:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
-        run: |
-          cd deployment/staging
-          ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Staging
+      run: |
+        cd deployment/staging
+        ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Staging
