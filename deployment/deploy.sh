@@ -1,8 +1,6 @@
 cat > ./terraform.tfvars <<- EOM
-vars = {
-    app_version = "${GITHUB_REF:10}"
-    app_environment = "$1"
-}
+app_version = "${GITHUB_REF:10}"
+app_environment = "$1"
 EOM
 
 echo $DOCKER_TOKEN | docker login --username "phenry20" --password-stdin
