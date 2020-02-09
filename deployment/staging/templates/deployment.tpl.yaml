@@ -20,3 +20,5 @@ spec:
           value: ${environment}
         ports:
         - containerPort: 5000
+      imagePullSecrets:
+        - name: regcred
