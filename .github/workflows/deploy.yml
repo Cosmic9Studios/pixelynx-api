@@ -15,8 +15,10 @@ jobs:
     - name: Deploy Production
       env:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx-staging.json"
-      run: deployment/staging/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
+        run: |
+          cd deployment/staging
+          ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Staging
   
   deploy_production:
     if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'production'
