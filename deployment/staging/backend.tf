@@ -1,3 +1,6 @@
 terraform {
-    backend "gcs" {}
+    backend "gcs" {
+        bucket = "staging-pixelynx-state"
+        prefix = "gcp/k8s/pixelynx-api"
+    }
 }
