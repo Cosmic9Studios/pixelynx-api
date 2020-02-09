@@ -12,7 +12,7 @@ jobs:
         version: '~0.12'
 
     - name: Add GPG
-      run: apk add gnupg
+      run: apt-get install -y gnupg2
 
     - name: Deploy Production
       env:
@@ -32,7 +32,7 @@ jobs:
         version: '~0.12'
 
     - name: Add GPG
-      run: apk add gnupg
+      run: apt-get install -y gnupg2
 
     - name: Deploy Production
       env:
