@@ -7,9 +7,11 @@ on:
 jobs:
   release:
     runs-on: ubuntu-16.04
-    container: cytopia/terragrunt
     steps:
     - uses: actions/checkout@v1
+    - uses: volcano-coffee-company/setup-terraform@v1
+      with:
+        version: '~0.12'
 
     - name: Add GPG
       run: apk add gnupg

@@ -5,9 +5,11 @@ jobs:
   deploy_staging:
     if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'staging'
     runs-on: ubuntu-latest
-    container: cytopia/terragrunt
     steps:
     - uses: actions/checkout@v1
+    - uses: volcano-coffee-company/setup-terraform@v1
+      with:
+        version: '~0.12'
 
     - name: Add GPG
       run: apk add gnupg
@@ -23,9 +25,11 @@ jobs:
   deploy_production:
     if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'production'
     runs-on: ubuntu-latest
-    container: cytopia/terragrunt
     steps:
     - uses: actions/checkout@v1
+    - uses: volcano-coffee-company/setup-terraform@v1
+      with:
+        version: '~0.12'
 
     - name: Add GPG
       run: apk add gnupg
@@ -34,4 +38,6 @@ jobs:
       env:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
-      run: deployment/production/deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }}
+      run: |
+        cd deployment/production
+        ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Production
