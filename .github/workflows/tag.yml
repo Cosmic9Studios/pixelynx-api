@@ -22,4 +22,5 @@ jobs:
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
       run: |
         cd deployment/staging
-        ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Staging
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./pixelynx.json.gpg
+        ../deploy.sh Staging

@@ -14,13 +14,14 @@ jobs:
     - name: Add GPG
       run: sudo apt-get install -y gnupg2
 
-    - name: Deploy Production
+    - name: Deploy Staging
       env:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
       run: |
         cd deployment/staging
-        ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Staging
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./pixelynx.json.gpg
+        ../deploy.sh Staging
   
   deploy_production:
     if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'production'
@@ -39,5 +40,6 @@ jobs:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
       run: |
-        cd deployment/production
-        ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Production
+        cd deployment/staging
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./pixelynx.json.gpg
+        ../deploy.sh Production
