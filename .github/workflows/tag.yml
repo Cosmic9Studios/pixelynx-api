@@ -7,17 +7,21 @@ on:
 jobs:
   release:
     runs-on: ubuntu-16.04
-    container: cytopia/terragrunt
     steps:
     - uses: actions/checkout@v1
+    - uses: volcano-coffee-company/setup-terraform@v1
+      with:
+        version: '~0.12'
 
     - name: Add GPG
-      run: apk add gnupg
+      run: sudo apt-get install -y gnupg2
 
     - name: Release
       env:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
+        KUBECONFIG: "k8s/kubeconfig"
       run: |
-        cd deployment/staging
-        ../deploy.sh ${{ secrets.ACCOUNT_JSON_CREDENTIALS }} Staging
+        cd deployment
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./staging/pixelynx-staging.json.gpg
+        ./deploy.sh Staging
