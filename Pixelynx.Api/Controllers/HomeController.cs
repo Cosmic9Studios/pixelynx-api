@@ -14,7 +14,7 @@ namespace Pixelynx.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("health")]
+        [HttpGet("healthz")]
         public IActionResult Health() {
             return Ok();
         }
