@@ -20,9 +20,9 @@ jobs:
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
         KUBECONFIG: "k8s/kubeconfig"
       run: |
-        cd deployment/staging
-        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./pixelynx-staging.json.gpg
-        ../deploy.sh Staging
+        cd deployment
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./staging/pixelynx-staging.json.gpg
+        ./deploy.sh Staging
   
   deploy_production:
     if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'production'
@@ -41,6 +41,6 @@ jobs:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
       run: |
-        cd deployment/staging
-        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./pixelynx.json.gpg
-        ../deploy.sh Production
+        cd deployment
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./production/pixelynx.json.gpg
+        ./deploy.sh Production

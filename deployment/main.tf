@@ -1,7 +1,7 @@
 data "terraform_remote_state" "k8s" {
   backend = "gcs"
   config = {
-    bucket = "staging-pixelynx-state"
+    bucket = var.app_environment == "Staging" ? "staging-pixelynx-state" : "pixelynx-state"
     prefix = "gcp/k8s-cluster"
   }
 }
@@ -28,7 +28,7 @@ resource "local_file" "client_key" {
 
 # Deployment
 data "template_file" "deployment" {
-  template = file("${path.module}/templates/deployment.tpl.yaml")
+  template = file("${path.root}/templates/deployment.tpl.yaml")
   vars = {
     version = var.app_version
     environment = var.app_environment
