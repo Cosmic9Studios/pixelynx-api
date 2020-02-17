@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using System.IO;
 
@@ -19,18 +18,10 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Constructors.
-        public GCStorage(string accountData)
+        public GCStorage(UrlSigner urlSigner)
         {
             client = StorageClient.Create();
-
-            var cred = GoogleCredential.FromJson(accountData);
-            if (cred.IsCreateScopedRequired)
-            {
-                var scopes = new string[] { "https://www.googleapis.com/auth/cloud-platform" };
-                cred.CreateScoped(scopes);
-            }
-
-            urlSigner = UrlSigner.FromServiceAccountCredential(cred.UnderlyingCredential as ServiceAccountCredential);
+            this.urlSigner = urlSigner;
         }
         #endregion
 
