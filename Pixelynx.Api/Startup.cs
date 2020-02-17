@@ -23,8 +23,10 @@ using System;
 using Pixelynx.Data.Entities;
 using Pixelynx.Logic.Settings;
 using Pixelynx.Logic.Interfaces;
+using Pixelynx.Logic.Helpers;
 using Pixelynx.Data.Models;
 using Pixelynx.Data.Settings;
+using Google.Cloud.Storage.V1;
 
 namespace Pixelynx.Api
 {
@@ -69,7 +71,9 @@ namespace Pixelynx.Api
             }
             else
             { 
-                services.AddSingleton<IBlobStorage>(new GCStorage(Configuration.GetSection("GCP:ServiceAccount").Get<string>()));
+                var urlSigner = GCPHelper.GetUrlSigner().Result;
+                services.AddSingleton<UrlSigner>(urlSigner);
+                services.AddSingleton<IBlobStorage>(new GCStorage(urlSigner));
             }
 
             // Order matters. This needs to be before AddAuthentication
