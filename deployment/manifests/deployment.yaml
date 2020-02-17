@@ -1,22 +1,22 @@
 apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
-  name: pxl-web
+  name: pxl-api
 spec:
   selector:
     matchLabels:
-      app: pxl-web
+      app: pxl-api
   replicas: 1
   template:
     metadata:
       labels:
-        app: pxl-web
+        app: pxl-api
     spec:
       containers:
-      - name: pxl-web
-        image: phenry20/pixelynx:web-${version}
+      - name: pxl-api
+        image: phenry20/pixelynx:api-${version}
         env:
-        - name: NODE_ENV
+        - name: ASPNETCORE_ENVIRONMENT
           value: ${environment}
         readinessProbe:
             failureThreshold: 3
