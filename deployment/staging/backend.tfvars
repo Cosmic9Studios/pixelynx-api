@@ -1,0 +1,1 @@
+bucket="staging-pixelynx-state"
