@@ -1,41 +1,64 @@
+terraform {
+    backend "gcs" {
+        prefix = "gcp/k8s/pixelynx-api"
+    }
+}
+
 data "terraform_remote_state" "k8s" {
   backend = "gcs"
   config = {
     bucket = var.app_environment == "Staging" ? "staging-pixelynx-state" : "pixelynx-state"
-    prefix = "gcp/k8s-cluster"
+    prefix = "gcp/app"
   }
 }
 
-resource "local_file" "kubeconfig" {
-    content = data.terraform_remote_state.k8s.outputs.kubeconfig
-    filename = "${path.root}/k8s/kubeconfig"
+data "google_client_config" "default" {}
+
+provider "kubectl" {
+    load_config_file       = false
+    host                   = "https://${data.terraform_remote_state.k8s.outputs.endpoint}"
+    token                  = data.google_client_config.default.access_token
+    cluster_ca_certificate = data.terraform_remote_state.k8s.outputs.cluster_ca_certificate
 }
 
-resource "local_file" "ca_cert" {
-    sensitive_content = data.terraform_remote_state.k8s.outputs.cluster_certificate
-    filename = "${path.root}/k8s/ssl/ca.crt"
+provider "kubernetes" {
+    load_config_file       = false
+    host                   = "https://${data.terraform_remote_state.k8s.outputs.endpoint}"
+    token                  = data.google_client_config.default.access_token
+    cluster_ca_certificate = data.terraform_remote_state.k8s.outputs.cluster_ca_certificate
 }
 
-resource "local_file" "client_cert" {
-    sensitive_content = data.terraform_remote_state.k8s.outputs.client_certificate
-    filename = "${path.root}/k8s/ssl/client.crt"
+provider "random" {}
+
+resource "random_pet" "secret" {}
+
+resource "kubernetes_secret" "secret" {
+  metadata {
+    name = random_pet.secret.id
+  }
+
+  data = {
+    ".dockerconfigjson" = jsonencode({
+      "auths" : {
+        "https://index.docker.io/v1/" : {
+          email    = "phenry@cosmic9studios.com"
+          username = "phenry20"
+          password = var.docker_pass
+          auth     = base64encode(join(":", ["phenry20", var.docker_pass]))
+        }
+      }
+    })
+  }
+
+  type = "kubernetes.io/dockerconfigjson"
 }
 
-resource "local_file" "client_key" {
-    sensitive_content = data.terraform_remote_state.k8s.outputs.client_key
-    filename = "${path.root}/k8s/ssl/client.key"
-}
-
-# Deployment
-data "template_file" "deployment" {
-  template = file("${path.root}/templates/deployment.tpl.yaml")
-  vars = {
+resource "kubectl_manifest" "deployment" {
+  yaml_body = templatefile("${path.module}/manifests/deployment.yaml", {
+    environment = var.app_environment 
     version = var.app_version
-    environment = var.app_environment
-  }
-}
+    secret = random_pet.secret.id
+  })
 
-resource "local_file" "deployment" {
-    content = data.template_file.deployment.rendered
-    filename = "${path.root}/k8s/deployment.yaml"
+  depends_on = [kubernetes_secret.secret]
 }

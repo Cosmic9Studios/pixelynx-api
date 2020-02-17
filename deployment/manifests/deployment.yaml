@@ -1,0 +1,32 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: pxl-web
+spec:
+  selector:
+    matchLabels:
+      app: pxl-web
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pxl-web
+    spec:
+      containers:
+      - name: pxl-web
+        image: phenry20/pixelynx:web-${version}
+        env:
+        - name: NODE_ENV
+          value: ${environment}
+        readinessProbe:
+            failureThreshold: 3
+            httpGet:
+                path: /healthz
+                port: 5000
+                scheme: HTTP
+        ports:
+        - containerPort: 5000
+          name: app-port
+          protocol: TCP
+      imagePullSecrets:
+        - name: ${secret}
