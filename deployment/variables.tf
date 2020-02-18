@@ -7,6 +7,5 @@ variable "app_environment" {
 }
 
 variable "docker_pass" {
-    default = "Sasuke20!"
     type = string
 }
