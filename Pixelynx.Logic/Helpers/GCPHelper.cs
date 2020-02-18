@@ -58,7 +58,7 @@ namespace Pixelynx.Logic.Helpers
             {
                 HttpRequestMessage serviceAccountRequest = new HttpRequestMessage
                 {
-                    RequestUri = new Uri("169.254.169.254"),
+                    RequestUri = new Uri("http://169.254.169.254"),
                     Headers = { { "Metadata-Flavor", "Google" } }
                 };
 
