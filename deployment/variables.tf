@@ -9,3 +9,11 @@ variable "app_environment" {
 variable "docker_pass" {
     type = string
 }
+
+variable "project" {
+    default = "pixelynx-staging"
+}
+
+variable "db_name" {
+    default = "pxl-db"
+}
