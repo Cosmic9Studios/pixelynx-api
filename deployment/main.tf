@@ -58,6 +58,8 @@ resource "kubectl_manifest" "deployment" {
     environment = var.app_environment 
     version = var.app_version
     secret = random_pet.secret.id
+    project = var.project
+    database = var.db_name
   })
 
   depends_on = [kubernetes_secret.secret]
