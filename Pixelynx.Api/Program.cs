@@ -44,22 +44,31 @@ namespace Pixelynx.Api
                     var paths = configuration.GetSection("Vault:Paths").Get<List<string>>();
                     var project = configuration.GetSection("GCP:Project").Get<string>();
                     var serviceAccountEmail = configuration.GetSection("GCP:ServiceAccountEmail").Get<string>();
+                    var roleName = "";
 
                     IAuthMethodInfo authMethod = null;
                     if (env.EnvironmentName != "Development") 
                     {
-                        authMethod = new GoogleCloudAuthMethodInfo("my-iam-role", 
+                        roleName = "my-iam-role";
+                        authMethod = new GoogleCloudAuthMethodInfo(roleName, 
                             Task.Run(() => GCPHelper.SignJwt(project, serviceAccountEmail)).Result);
                     }
                     else 
                     {
+                        roleName = "admin";
                         authMethod = new TokenAuthMethodInfo("token");
                     }
 
                     var vaultClientSettings = new VaultClientSettings(address, authMethod);
                     var vaultClient = new VaultClient(vaultClientSettings);
+                    var dbCreds = vaultClient.V1.Secrets.Database.GetCredentialsAsync(roleName).Result;
                 
                     config.AddHashicorpVault(vaultClient, KVVersion.V1, paths.ToArray());
+                    config.AddInMemoryCollection(new Dictionary<string, string>
+                    {
+                        {"Db:UserName", dbCreds.Data.Username },
+                        {"Db:Password", dbCreds.Data.Password }
+                    });
                 })
                 .UseKestrel(options =>
                 {   
