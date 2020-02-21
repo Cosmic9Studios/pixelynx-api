@@ -47,3 +47,42 @@ spec:
       - name: cloudsql-instance-credentials
         secret:
           secretName: service-account-token
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: pxl-api-svc
+spec:
+    ports:
+    - port: 5000
+      protocol: TCP
+      targetPort: 5000
+    selector:
+        app: pxl-api
+    type: NodePort
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: "pxl-api-ing"
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+        certmanager.k8s.io/acme-http01-edit-in-place: "true"
+        kubernetes.io/ingress.class: nginx
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+    tls:
+    - hosts:
+      - ${domain}
+      secretName: tls
+    rules:
+    - host: ${domain}
+      http:
+        paths:
+        - path: /api(/|$)(.*) 
+          backend:
+            serviceName: pxl-api
+            servicePort: 5000

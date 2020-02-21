@@ -4,6 +4,10 @@ terraform {
     }
 }
 
+locals {
+    domain = var.app_environment ==  "Staging" ? "staging.pixelynx.com" : "pixelynx.com"
+}
+
 data "terraform_remote_state" "k8s" {
   backend = "gcs"
   config = {
@@ -60,6 +64,7 @@ resource "kubectl_manifest" "deployment" {
     secret = random_pet.secret.id
     project = var.project
     database = var.db_name
+    domain = local.domain
   })
 
   depends_on = [kubernetes_secret.secret]
