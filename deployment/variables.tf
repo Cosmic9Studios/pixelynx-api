@@ -13,7 +13,3 @@ variable "docker_pass" {
 variable "project" {
     default = "pixelynx-staging"
 }
-
-variable "db_name" {
-    default = "pxl-db"
-}

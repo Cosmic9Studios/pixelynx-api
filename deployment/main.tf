@@ -63,7 +63,7 @@ resource "kubectl_manifest" "deployment" {
     version = var.app_version
     secret = random_pet.secret.id
     project = var.project
-    database = var.db_name
+    instance = data.terraform_remote_state.k8s.outputs.db_instance_name
     domain = local.domain
   })
 
