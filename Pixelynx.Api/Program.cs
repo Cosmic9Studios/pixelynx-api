@@ -42,7 +42,6 @@ namespace Pixelynx.Api
                     configuration.ResolveVariables("${", "}");
                     var address = configuration.GetSection("Vault:Address").Get<string>();
                     var paths = configuration.GetSection("Vault:Paths").Get<List<string>>();
-                    var project = configuration.GetSection("GCP:Project").Get<string>();
                     var serviceAccountEmail = configuration.GetSection("GCP:ServiceAccountEmail").Get<string>();
                     var roleName = "";
 
@@ -51,7 +50,7 @@ namespace Pixelynx.Api
                     {
                         roleName = "my-iam-role";
                         authMethod = new GoogleCloudAuthMethodInfo(roleName, 
-                            Task.Run(() => GCPHelper.SignJwt(project, serviceAccountEmail)).Result);
+                            Task.Run(() => GCPHelper.SignJwt(serviceAccountEmail)).Result);
                     }
                     else 
                     {
