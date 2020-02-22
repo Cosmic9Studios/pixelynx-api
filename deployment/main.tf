@@ -5,12 +5,14 @@ terraform {
 }
 
 locals {
-    domain = var.app_environment ==  "Staging" ? "staging.pixelynx.com" : "pixelynx.com"
+    domain = var.app_environment != "Production" ? "staging.pixelynx.com" : "pixelynx.com"
+    project = var.app_environment != "Production" ? "pixelynx-staging" : "pixelynx"
     gsa_name = "pxl-api"
     ksa_name = "pxl-api"
     roles = [
         "roles/iam.serviceAccountCreator",
         "roles/iam.serviceAccountKeyAdmin",
+        "roles/iam.serviceAccountTokenCreator",
         "roles/container.admin",
         "roles/storage.admin",
         "roles/cloudsql.editor",
@@ -45,6 +47,14 @@ provider "kubernetes" {
 
 provider "random" {}
 
+provider "google" {
+  project = local.project
+}
+
+provider "google-beta" {
+  project = local.project
+}
+
 resource "google_service_account" "gsa" {
   account_id   = local.gsa_name
   display_name = "A service account for Pixelynx-Api pod"
@@ -61,18 +71,14 @@ resource "kubernetes_service_account" "ksa" {
 
 resource "google_project_iam_member" "roles" {
   for_each = toset(local.roles)
-  project = var.project
   role    = each.key
   member  = "serviceAccount:${google_service_account.gsa.email}"
 }
 
-resource "google_service_account_iam_binding" "sa" {
+resource "google_service_account_iam_member" "sa" {
   service_account_id = google_service_account.gsa.name
   role    = "roles/iam.workloadIdentityUser"
-
-  members = [
-    "serviceAccount:${var.project}.svc.id.goog[default/${local.ksa_name}]"
-  ]
+  member = "serviceAccount:${local.project}.svc.id.goog[default/${local.ksa_name}]"
 }
 
 resource "random_pet" "secret" {}
@@ -103,7 +109,6 @@ resource "kubectl_manifest" "deployment" {
     environment = var.app_environment 
     version = var.app_version
     secret = random_pet.secret.id
-    project = var.project
     instance = data.terraform_remote_state.k8s.outputs.db_instance_name
     domain = local.domain
     serviceAccountName = local.ksa_name

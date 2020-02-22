@@ -24,7 +24,7 @@ namespace Pixelynx.Logic.Helpers
             return credential;
         }
 
-        public static async Task<string> SignJwt(string project, string serviceAccountEmail)
+        public static async Task<string> SignJwt(string serviceAccountEmail)
         {
             var credential = await GetCredential();
             IamService iamService = new IamService(new BaseClientService.Initializer
@@ -40,7 +40,7 @@ namespace Pixelynx.Logic.Helpers
             obj["aud"] = "vault/my-iam-role";
             obj["exp"] = unixEpochTime;
 
-            string name = $"projects/{project}/serviceAccounts/{serviceAccountEmail}";
+            string name = $"projects/-/serviceAccounts/{serviceAccountEmail}";
             SignJwtRequest requestBody = new SignJwtRequest()
             {
                 Payload = obj.ToString(Formatting.None), 
