@@ -6,6 +6,17 @@ terraform {
 
 locals {
     domain = var.app_environment ==  "Staging" ? "staging.pixelynx.com" : "pixelynx.com"
+    gsa_name = "pxl-api"
+    ksa_name = "pxl-api"
+    roles = [
+        "roles/iam.serviceAccountCreator",
+        "roles/iam.serviceAccountKeyAdmin",
+        "roles/container.admin",
+        "roles/storage.admin",
+        "roles/cloudsql.editor",
+        "roles/compute.viewer",
+        "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+    ]
 }
 
 data "terraform_remote_state" "k8s" {
@@ -33,6 +44,36 @@ provider "kubernetes" {
 }
 
 provider "random" {}
+
+resource "google_service_account" "gsa" {
+  account_id   = local.gsa_name
+  display_name = "A service account for Pixelynx-Api pod"
+}
+
+resource "kubernetes_service_account" "ksa" {
+  metadata {
+    name = local.ksa_name
+    annotations = {
+      "iam.gke.io/gcp-service-account" = google_service_account.gsa.email
+    }
+  }
+}
+
+resource "google_project_iam_member" "roles" {
+  for_each = toset(local.roles)
+  project = var.project
+  role    = each.key
+  member  = "serviceAccount:${google_service_account.gsa.email}"
+}
+
+resource "google_service_account_iam_binding" "sa" {
+  service_account_id = google_service_account.gsa.name
+  role    = "roles/iam.workloadIdentityUser"
+
+  members = [
+    "serviceAccount:${var.project}.svc.id.goog[default/${local.ksa_name}]"
+  ]
+}
 
 resource "random_pet" "secret" {}
 
@@ -65,7 +106,11 @@ resource "kubectl_manifest" "deployment" {
     project = var.project
     instance = data.terraform_remote_state.k8s.outputs.db_instance_name
     domain = local.domain
+    serviceAccountName = local.ksa_name
   })
 
-  depends_on = [kubernetes_secret.secret]
+  depends_on = [
+    kubernetes_secret.secret,
+    google_project_iam_member.roles
+  ]
 }
