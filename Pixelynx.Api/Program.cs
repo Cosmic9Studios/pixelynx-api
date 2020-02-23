@@ -42,15 +42,13 @@ namespace Pixelynx.Api
                     configuration.ResolveVariables("${", "}");
                     var address = configuration.GetSection("Vault:Address").Get<string>();
                     var paths = configuration.GetSection("Vault:Paths").Get<List<string>>();
-                    var serviceAccountEmail = configuration.GetSection("GCP:ServiceAccountEmail").Get<string>();
                     var roleName = "";
 
                     IAuthMethodInfo authMethod = null;
                     if (env.EnvironmentName != "Development") 
                     {
                         roleName = "my-iam-role";
-                        authMethod = new GoogleCloudAuthMethodInfo(roleName, 
-                            Task.Run(() => GCPHelper.SignJwt(serviceAccountEmail)).Result);
+                        authMethod = new GoogleCloudAuthMethodInfo(roleName, Task.Run(GCPHelper.GetJwt).Result);
                     }
                     else 
                     {
