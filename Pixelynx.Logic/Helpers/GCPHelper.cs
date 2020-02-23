@@ -24,32 +24,18 @@ namespace Pixelynx.Logic.Helpers
             return credential;
         }
 
-        public static async Task<string> SignJwt(string serviceAccountEmail)
+        public static async Task<string> GetJwt()
         {
-            var credential = await GetCredential();
-            IamService iamService = new IamService(new BaseClientService.Initializer
+            using (var httpClient = new HttpClient())
             {
-                HttpClientInitializer = credential
-            });
+                using (var request = new HttpRequestMessage(new HttpMethod("GET"), "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full"))
+                {
+                    request.Headers.TryAddWithoutValidation("Metadata-Flavor", "Google"); 
 
-            System.TimeSpan timeDifference = DateTime.UtcNow.AddMinutes(15) - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            long unixEpochTime = System.Convert.ToInt64(timeDifference.TotalSeconds);
-
-            JObject obj = new JObject();
-            obj["sub"] = serviceAccountEmail; 
-            obj["aud"] = "vault/my-iam-role";
-            obj["exp"] = unixEpochTime;
-
-            string name = $"projects/-/serviceAccounts/{serviceAccountEmail}";
-            SignJwtRequest requestBody = new SignJwtRequest()
-            {
-                Payload = obj.ToString(Formatting.None), 
-            };
-
-            ProjectsResource.ServiceAccountsResource.SignJwtRequest request = iamService.Projects.ServiceAccounts.SignJwt(requestBody, name);
-            SignJwtResponse response = await request.ExecuteAsync();
-
-            return response.SignedJwt;
+                    var response = await httpClient.SendAsync(request);
+                    return await response.Content.ReadAsStringAsync();
+                }
+            }
         }
 
         public static async Task<UrlSigner> GetUrlSigner()
