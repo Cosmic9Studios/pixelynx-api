@@ -28,13 +28,8 @@ namespace Pixelynx.Logic.Helpers
         {
             using (var httpClient = new HttpClient())
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("GET"), "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full"))
-                {
-                    request.Headers.TryAddWithoutValidation("Metadata-Flavor", "Google"); 
-
-                    var response = await httpClient.SendAsync(request);
-                    return await response.Content.ReadAsStringAsync();
-                }
+                httpClient.DefaultRequestHeaders.Add("Metadata-Flavor", "Google");
+                return (await httpClient.GetStringAsync("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full")).ToString();
             }
         }
 
