@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: pxl-api
 spec:
-  serviceAccountName: ${serviceAccountName}
   selector:
     matchLabels:
       app: pxl-api
@@ -13,6 +12,7 @@ spec:
       labels:
         app: pxl-api
     spec:
+      serviceAccountName: ${serviceAccountName}
       imagePullSecrets:
         - name: ${secret}
       containers:
