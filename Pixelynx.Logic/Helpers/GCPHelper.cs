@@ -28,8 +28,15 @@ namespace Pixelynx.Logic.Helpers
         {
             using (var httpClient = new HttpClient())
             {
-                httpClient.DefaultRequestHeaders.Add("Metadata-Flavor", "Google");
-                return (await httpClient.GetStringAsync("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full")).ToString();
+                HttpRequestMessage serviceAccountRequest = new HttpRequestMessage
+                {
+                    RequestUri = new Uri("http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full"),
+                    Headers = { { "Metadata-Flavor", "Google" } }
+                };
+
+                HttpResponseMessage serviceAccountResponse = await httpClient.SendAsync(serviceAccountRequest).ConfigureAwait(false);
+                serviceAccountResponse.EnsureSuccessStatusCode();
+                return await serviceAccountResponse.Content.ReadAsStringAsync();
             }
         }
 
