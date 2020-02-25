@@ -7,7 +7,7 @@ using Pixelynx.Api.Requests;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Models;
 using Pixelynx.Data.Settings;
-using glTFLoader;
+using Microsoft.Extensions.Logging;
 
 namespace Pixelynx.Api.Controllers
 {
@@ -16,11 +16,13 @@ namespace Pixelynx.Api.Controllers
     {
         private IBlobStorage blobStorage;
         private UnitOfWork unitOfWork;
+        private ILogger<AssetController> logger;
 
-        public AssetController(IBlobStorage blobStorage, UnitOfWork unitOfWork)
+        public AssetController(IBlobStorage blobStorage, UnitOfWork unitOfWork, ILogger<AssetController> logger)
         {
             this.blobStorage = blobStorage;
             this.unitOfWork = unitOfWork;
+            this.logger = logger;
         }
 
         [HttpPost, Route("uploadAsset")]
@@ -36,17 +38,8 @@ namespace Pixelynx.Api.Controllers
 
                 var ms = new MemoryStream();
                 request.Data.CopyTo(ms);
-                System.IO.File.WriteAllBytes(fileName, ms.ToArray());
-
-                Interface.Pack(fileName, binaryFileName);
-
-                var fileBytes = System.IO.File.ReadAllBytes(binaryFileName);
-            
-                System.IO.File.Delete(fileName);
-                System.IO.File.Delete(binaryFileName);
-
                 Enum.TryParse<Core.AssetType>(request.Type, true, out var assetType);
-                var asset = new Core.Asset(request.Name, assetType, fileBytes);
+                var asset = new Core.Asset(request.Name, assetType, ms.ToArray());
 
                 if (!string.IsNullOrWhiteSpace(request.ParentId))
                 {
@@ -56,10 +49,13 @@ namespace Pixelynx.Api.Controllers
                 await unitOfWork.AssetRepository.Value.CreateAsset(asset);
                 await unitOfWork.SaveChanges();
 
+                logger.Log(LogLevel.Information, $"Uploading Asset {request.Name} with ParentId: {request.ParentId}");
+
                 return Ok(new { id = asset.Id });
             }
-            catch 
+            catch (Exception ex)
             {
+                logger.LogError(ex, $"Failed to create asset: {request.Name} of type {request.Type}");
                 return BadRequest();
             }
         }
