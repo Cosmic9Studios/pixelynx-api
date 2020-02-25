@@ -3,11 +3,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Iam.v1;
-using Google.Apis.Iam.v1.Data;
 using Google.Apis.Services;
 using Google.Cloud.Storage.V1;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Pixelynx.Logic.Helpers
 {
@@ -30,7 +27,7 @@ namespace Pixelynx.Logic.Helpers
             {
                 HttpRequestMessage serviceAccountRequest = new HttpRequestMessage
                 {
-                    RequestUri = new Uri("http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full"),
+                    RequestUri = new Uri("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full"),
                     Headers = { { "Metadata-Flavor", "Google" } }
                 };
 
@@ -46,7 +43,7 @@ namespace Pixelynx.Logic.Helpers
             {
                 HttpRequestMessage serviceAccountRequest = new HttpRequestMessage
                 {
-                    RequestUri = new Uri("http://169.254.169.254"),
+                    RequestUri = new Uri("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email"),
                     Headers = { { "Metadata-Flavor", "Google" } }
                 };
 
