@@ -12,12 +12,13 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ".", "/vagrant", type: "rsync"
 
     config.vm.provision "docker" do |d|
+        d.build_image "/vagrant/postgres", args: "-t local/postgres"
         d.run "vault", 
-            image: "vault:latest",
+            image: "vault:1.3.2",
             args: "-p 8200:8200 -v /vagrant/vault-entrypoint.sh:/scripts/entrypoint.sh --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=token' -e 'VAULT_ADDR=http://0.0.0.0:8200' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' --entrypoint /scripts/entrypoint.sh"
         d.run "postgres",
-            image: "postgres:11-alpine", 
-            args: "-p 5432:5432 -e POSTGRES_USER=vault -e POSTGRES_PASSWORD=devpass"
+            image: "local/postgres",
+            args: "-p 5432:5432 -e POSTGRES_PASSWORD=devpass"
         d.run "minio/minio", 
             args: "-p 9000:9000 -e MINIO_ACCESS_KEY=access_key -e MINIO_SECRET_KEY=secret_key -v /mnt/data:/data", 
             cmd: "server /data"

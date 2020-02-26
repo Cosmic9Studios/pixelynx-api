@@ -13,14 +13,14 @@ vault write database/config/my-postgresql-database \
     plugin_name=postgresql-database-plugin \
     allowed_roles="admin" \
     connection_url="postgresql://{{username}}:{{password}}@192.168.50.50:5432/postgres?sslmode=disable" \
-    username="vault" \
+    username="postgres" \
     password="devpass"
 
 vault write database/roles/admin \
     db_name=my-postgresql-database \
     creation_statements="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO vault; \
-                        ALTER ROLE vault LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
-                        ALTER DEFAULT PRIVILEGES FOR ROLE vault GRANT ALL PRIVILEGES ON TABLES TO PUBLIC;"
+        ALTER ROLE vault LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
+        ALTER DEFAULT PRIVILEGES FOR ROLE vault GRANT ALL PRIVILEGES ON TABLES TO PUBLIC;" \
     default_ttl="1h" \
     max_ttl="24h"
 
