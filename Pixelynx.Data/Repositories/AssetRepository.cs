@@ -97,18 +97,18 @@ namespace Pixelynx.Data.Repositories
             var asset = blobs.First(x => x.Key.Contains("asset"));
             var thumbnail = blobs.FirstOrDefault(x => x.Key.Contains("thumbnail"));
 
-            var domain = new Asset(entity.Name, (AssetType) entity.AssetType, asset.Uri, entity.Id);
+            var domainModel = new Asset(entity.Name, (AssetType) entity.AssetType, asset.Uri, entity.Id);
             if (thumbnail != null)
             {
-                domain.Thumbnail = new Thumbnail(thumbnail.Key, thumbnail.Uri);
+                domainModel.Thumbnail = new Thumbnail(thumbnail.Key, thumbnail.Uri);
             }
 
             if (entity.ParentId != null)
             {
-                domain.Parent = ToAsset(entity.Parent);
+                domainModel.Parent = ToAsset(entity.Parent);
             }
 
-            return domain;
+            return domainModel;
         }
         #endregion
     }

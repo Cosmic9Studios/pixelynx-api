@@ -25,8 +25,14 @@ namespace Pixelynx.Api.Controllers
             this.logger = logger;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAsset([FromQuery] Guid id)
+        {
+            return Ok(await this.unitOfWork.AssetRepository.Value.GetAssetById(id));
+        }
+
         [HttpPost, Route("uploadAsset")]
-        public async Task<IActionResult> UploadModel(
+        public async Task<IActionResult> UploadAsset(
             [FromServices]IOptions<StorageSettings> storageSettings,
             [FromServices]UnitOfWork unitOfWork,
             [FromForm] UploadRequest request)
