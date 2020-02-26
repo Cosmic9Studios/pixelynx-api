@@ -9,7 +9,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: volcano-coffee-company/setup-terraform@v1
       with:
-        version: '~0.12'
+        version: '0.12.21'
 
     - name: Add GPG
       run: sudo apt-get install -y gnupg2
@@ -31,7 +31,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: volcano-coffee-company/setup-terraform@v1
       with:
-        version: '~0.12'
+        version: '0.12.21'
 
     - name: Add GPG
       run: sudo apt-get install -y gnupg2
