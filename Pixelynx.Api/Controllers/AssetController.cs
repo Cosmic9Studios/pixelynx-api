@@ -32,7 +32,7 @@ namespace Pixelynx.Api.Controllers
         }
 
         [HttpPost, Route("uploadAsset")]
-        public async Task<IActionResult> uploadAsset(
+        public async Task<IActionResult> UploadAsset(
             [FromServices]IOptions<StorageSettings> storageSettings,
             [FromServices]UnitOfWork unitOfWork,
             [FromForm] UploadRequest request)
