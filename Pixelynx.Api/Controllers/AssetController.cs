@@ -33,9 +33,6 @@ namespace Pixelynx.Api.Controllers
         {
             try 
             {
-                var fileName = System.IO.Path.GetTempPath() + Guid.NewGuid().ToString() + ".gltf";
-                var binaryFileName = Path.ChangeExtension(fileName, ".glb");
-
                 var ms = new MemoryStream();
                 request.Data.CopyTo(ms);
                 Enum.TryParse<Core.AssetType>(request.Type, true, out var assetType);
