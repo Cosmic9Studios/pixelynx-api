@@ -55,11 +55,6 @@ namespace Pixelynx.Api
             services.Configure<AuthSettings>(Configuration.GetSection("Auth"));
             services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
-
-            // Services
-            services.AddScoped<UnitOfWork, UnitOfWork>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString));
             
             // Environment specific services
             if (HostingEnvironment.EnvironmentName == "Development")
@@ -75,6 +70,12 @@ namespace Pixelynx.Api
                 services.AddSingleton<UrlSigner>(urlSigner);
                 services.AddSingleton<IBlobStorage>(new GCStorage(urlSigner));
             }
+
+            // Services
+            services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Transient);
+            services.AddScoped<UnitOfWork, UnitOfWork>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<UploadService, UploadService>();
 
             // Order matters. This needs to be before AddAuthentication
             services.AddIdentity<UserEntity, Role>()

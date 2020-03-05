@@ -37,15 +37,17 @@ namespace Pixelynx.Api.Types
         public string Hello() => "world";
 
         public string Me([Service]IHttpContextAccessor context) => $"Hello, your Id is: {context.HttpContext.User.Identity.Name}";
+        
+        
 
         public async Task<List<Asset>> GetAssets(
             [Service]IBlobStorage blobStorage,
             [Service]IOptions<StorageSettings> storageSettings,
-            string filter,
-            string type, 
-            string parentId)
+            string filter = null,
+            string type = null,
+            string parentId = null)
         {
-                return (await unitOfWork.AssetRepository.Value.FindAssets(filter, type, Guid.TryParse(parentId, out  var guid) ? guid : Guid.Empty))
+                return (await unitOfWork.AssetRepository.FindAssets(filter, type, Guid.TryParse(parentId, out  var guid) ? guid : Guid.Empty))
                 .Select(x => 
                 {
                     return new Asset
