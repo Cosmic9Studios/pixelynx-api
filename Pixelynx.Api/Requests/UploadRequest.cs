@@ -5,16 +5,9 @@ namespace Pixelynx.Api.Requests
 {
     public class UploadRequest
     {
-        [FromForm(Name="data")]
-        public IFormFile Data { get; set; }
-
-        [FromForm(Name="name")]
-        public string Name { get; set; }
+        public IFormCollection Form { get; set; }
 
         [FromForm(Name="parentId")]
         public string ParentId { get; set; }
-
-        [FromForm(Name="type")]
-        public string Type { get; set; }
     }
 }

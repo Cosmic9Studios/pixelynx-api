@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Pixelynx.Data.BlobStorage;
@@ -18,9 +17,11 @@ namespace Pixelynx.Data.Models
             context = pixelynxContext;
             storage = blobStorage;
             storageSettings = settings.Value;
+
+            AssetRepository = new AssetRepository(context, storage, storageSettings.BucketName);
         }
 
-        public Lazy<AssetRepository> AssetRepository = new Lazy<AssetRepository>(() => new AssetRepository(context, storage, storageSettings.BucketName));
+        public AssetRepository AssetRepository { get; }
 
         public async Task SaveChanges()
         {
