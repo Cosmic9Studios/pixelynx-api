@@ -33,8 +33,8 @@ namespace Pixelynx.Tests
             await blobStorage.UploadFileToBucket("", storageId2, "thumbnail.png", null);
             await blobStorage.UploadFileToBucket("", storageId2, "watermark.glb", null);
 
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset("robot", Core.AssetType.Model, storageId1));
-            await unitOfWork.AssetRepository.Value.CreateAsset(new Core.Asset("foo", Core.AssetType.Model, storageId2));
+            await unitOfWork.AssetRepository.CreateAsset(new Core.Asset("robot", Core.AssetType.Model, storageId1));
+            await unitOfWork.AssetRepository.CreateAsset(new Core.Asset("foo", Core.AssetType.Model, storageId2));
             await unitOfWork.SaveChanges();
         }
 

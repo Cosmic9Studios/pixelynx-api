@@ -6,23 +6,16 @@ namespace Pixelynx.Core
 {
     public class Thumbnail
     {
-        protected Thumbnail(string name)
-        {
-            Name = name;
-        }
-
-        public Thumbnail(string name, string uri) : this(uri)
+        public Thumbnail(string uri)
         {
             Uri = uri;
         }
 
-        public Thumbnail(string name, byte[] rawData)
+        public Thumbnail(byte[] rawData)
         {
-            Name = name; 
             RawData = rawData;
         }
 
-        public string Name { get; set; }
         public string Uri { get; set; } = string.Empty;
         public byte[] RawData { get; set; } = new byte[0];
 

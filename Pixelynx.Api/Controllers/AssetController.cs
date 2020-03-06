@@ -2,12 +2,18 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Pixelynx.Api.Requests;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Models;
-using Pixelynx.Data.Settings;
 using Microsoft.Extensions.Logging;
+using Pixelynx.Core.Helpers;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
+using Pixelynx.Logic.Services;
+using Pixelynx.Logic.Model;
+using Pixelynx.Logic.Helpers;
+using Newtonsoft.Json;
 
 namespace Pixelynx.Api.Controllers
 {
@@ -28,39 +34,80 @@ namespace Pixelynx.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAsset([FromQuery] Guid id)
         {
-            return Ok(await this.unitOfWork.AssetRepository.Value.GetAssetById(id));
+            return Ok(await this.unitOfWork.AssetRepository.GetAssetById(id));
         }
 
-        [HttpPost, Route("uploadAsset")]
-        public async Task<IActionResult> UploadAsset(
-            [FromServices]IOptions<StorageSettings> storageSettings,
-            [FromServices]UnitOfWork unitOfWork,
-            [FromForm] UploadRequest request)
+        [HttpPost, Route("examine")]
+        public async Task<IActionResult> Examine(
+            [FromServices]UnitOfWork unitOfWork, 
+            IFormCollection request)
         {
-            try 
+            List<IFormFile> nonDuplicates = new List<IFormFile>();
+
+            foreach (var file in request.Files.Where(x => x.FileName.EndsWith("glb")))
             {
                 var ms = new MemoryStream();
-                request.Data.CopyTo(ms);
-                Enum.TryParse<Core.AssetType>(request.Type, true, out var assetType);
-                var asset = new Core.Asset(request.Name, assetType, ms.ToArray());
+                file.CopyTo(ms);
+                var byteArray = ms.ToArray();
 
-                if (!string.IsNullOrWhiteSpace(request.ParentId))
+                var fileHash = byteArray.GenerateHash();
+                var asset = await unitOfWork.AssetRepository.GetAssetByFileHash(fileHash);
+                if (asset == null)
                 {
-                    asset.Parent = await unitOfWork.AssetRepository.Value.GetAssetById(Guid.Parse(request.ParentId));
+                    nonDuplicates.Add(file);
                 }
-
-                await unitOfWork.AssetRepository.Value.CreateAsset(asset);
-                await unitOfWork.SaveChanges();
-
-                logger.Log(LogLevel.Information, $"Uploading Asset {request.Name} with ParentId: {request.ParentId}");
-
-                return Ok(new { id = asset.Id });
             }
-            catch (Exception ex)
+        
+            return Ok(nonDuplicates.Select(x => Path.GetFileNameWithoutExtension(x.FileName)));
+        }
+
+        [HttpPost, Route("upload")]
+        public async Task<IActionResult> UploadAsset(
+            [FromServices]UploadService uploadService,
+            [FromForm] UploadRequest request)
+        {
+            // Model has to be the first item in the form in order to act as the parent
+            if (!request.Form.Files.Any() || (string.IsNullOrWhiteSpace(request.ParentId) && request.Form.Files[0].Name != "model"))
             {
-                logger.LogError(ex, $"Failed to create asset: {request.Name} of type {request.Type}");
-                return BadRequest();
+                return BadRequest("Invalid form");
             }
+
+            Core.Asset parent = null;
+            if (!string.IsNullOrWhiteSpace(request.ParentId))
+            {
+                parent = await unitOfWork.AssetRepository.GetAssetById(Guid.Parse(request.ParentId));
+            }
+
+            var formFiles = request.Form.Files.GroupBy(x => x.Name);
+            List<AssetData> assetData = new List<AssetData>();
+        
+            foreach (var group in formFiles) 
+            {
+                var data = group.ElementAt(0);
+                var thumbnail = group.ElementAt(1);
+                request.Form.TryGetValue(group.Key, out var meta);
+
+                var dataStream = new MemoryStream();
+                var thumbStream = new MemoryStream();
+
+                await data.CopyToAsync(dataStream);
+                await thumbnail.CopyToAsync(thumbStream);
+                var metadata = JsonConvert.DeserializeObject<AssetMetadata>(meta.First());
+
+                assetData.Add(new AssetData
+                {
+                    DataStream = dataStream, 
+                    ThumbnailStream = thumbStream, 
+                    Metadata = metadata
+                });
+            }
+
+            if(await uploadService.UploadAssets(assetData, parent))
+            {
+                return Ok();
+            }
+            
+            return BadRequest();
         }
     }
 }

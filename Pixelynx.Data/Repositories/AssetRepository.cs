@@ -38,7 +38,7 @@ namespace Pixelynx.Data.Repositories
             await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "asset.glb", asset.RawData); 
             if (asset.Thumbnail != null)
             {
-                await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), $"thumbnail.{asset.Thumbnail.Name}", asset.Thumbnail.RawData);
+                await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "thumbnail.png", asset.Thumbnail.RawData);
             }
 
             await DbSet.AddAsync(new AssetEntity 
@@ -48,7 +48,8 @@ namespace Pixelynx.Data.Repositories
                 Name = asset.Name,
                 StorageBucket = bucketName,
                 StorageId = storageId,
-                AssetType = (int)asset.Type
+                AssetType = (int)asset.Type, 
+                FileHash = asset.RawData.GenerateHash()
             });
         }
         #endregion
@@ -87,7 +88,13 @@ namespace Pixelynx.Data.Repositories
         {
             int type = (int)assetType;
             return (await DbQuery.Where(x => x.AssetType == type).ToListAsync()).Select(ToAsset);
-        } 
+        }
+
+        public async Task<Asset> GetAssetByFileHash(string hash)
+        {
+            var entity = await DbQuery.Where(x => x.FileHash == hash).FirstOrDefaultAsync();
+            return entity == null ? null : ToAsset(entity);
+        }
         #endregion
 
         #region Private Methods
@@ -100,7 +107,7 @@ namespace Pixelynx.Data.Repositories
             var domainModel = new Asset(entity.Name, (AssetType) entity.AssetType, asset.Uri, entity.Id);
             if (thumbnail != null)
             {
-                domainModel.Thumbnail = new Thumbnail(thumbnail.Key, thumbnail.Uri);
+                domainModel.Thumbnail = new Thumbnail(thumbnail.Uri);
             }
 
             if (entity.ParentId != null)
