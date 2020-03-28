@@ -73,7 +73,7 @@ namespace Pixelynx.Api
 
             // Services
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Transient);
-            services.AddScoped<UnitOfWork, UnitOfWork>();
+            services.AddTransient<UnitOfWork, UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();
 

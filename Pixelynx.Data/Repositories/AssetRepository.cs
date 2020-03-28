@@ -15,7 +15,6 @@ namespace Pixelynx.Data.Repositories
     {
         #region Fields.
         private DbSet<AssetEntity> DbSet;
-        private IIncludableQueryable<AssetEntity, AssetEntity> DbQuery;
         private IBlobStorage blobStorage;
         private string bucketName;
         #endregion
@@ -23,9 +22,7 @@ namespace Pixelynx.Data.Repositories
         #region Constructors.
         public AssetRepository(PixelynxContext context, IBlobStorage blobStorage, string bucketName)
         {
-            DbSet = context.Set<AssetEntity>();
-            DbQuery = DbSet.Include(x => x.Parent); 
-            DbQuery.Load();
+            DbSet = context.Assets;
             this.blobStorage = blobStorage;
             this.bucketName = bucketName;
         }
@@ -57,7 +54,7 @@ namespace Pixelynx.Data.Repositories
         #region Query Methods.
         public async Task<List<Asset>> GetAllAssets()
         {
-            var allAssets = await DbQuery.ToListAsync();
+            var allAssets = await DbSet.Include(x => x.Parent).ToListAsync();
             return allAssets.Select(x =>
             {
                 return ToAsset(x);
@@ -66,7 +63,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<IEnumerable<Asset>> FindAssets(string filter, string assetType, Guid? parentId)
         {
-            return (await DbQuery
+            return (await DbSet.Include(x => x.Parent)
                 .Where(x => parentId == Guid.Empty || x.ParentId == parentId)
                 .Where(x => string.IsNullOrWhiteSpace(filter) || EF.Functions.ILike(x.Name, $"%{filter}%"))
                 .Where(x => string.IsNullOrWhiteSpace(assetType) || Convert.ToInt32(Enum.Parse<Core.AssetType>(assetType)) == x.AssetType)
@@ -76,23 +73,23 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<IEnumerable<Asset>> GetAssetsById(Guid[] ids)
         {
-            return (await DbQuery.Where(x => ids.Any(y => y == x.Id)).ToListAsync()).Select(x => ToAsset(x));
+            return (await DbSet.Include(x => x.Parent).Where(x => ids.Any(y => y == x.Id)).ToListAsync()).Select(x => ToAsset(x));
         }
 
         public async Task<Asset> GetAssetById(Guid id)
         {
-            return ToAsset(await DbQuery.FirstAsync(x => x.Id == id));
+            return ToAsset(await DbSet.Include(x => x.Parent).FirstAsync(x => x.Id == id));
         }
 
         public async Task<IEnumerable<Asset>> GetAssetsByType(AssetType assetType)
         {
             int type = (int)assetType;
-            return (await DbQuery.Where(x => x.AssetType == type).ToListAsync()).Select(ToAsset);
+            return (await DbSet.Include(x => x.Parent).Where(x => x.AssetType == type).ToListAsync()).Select(ToAsset);
         }
 
         public async Task<Asset> GetAssetByFileHash(string hash)
         {
-            var entity = await DbQuery.Where(x => x.FileHash == hash).FirstOrDefaultAsync();
+            var entity = await DbSet.Include(x => x.Parent).Where(x => x.FileHash == hash).FirstOrDefaultAsync();
             return entity == null ? null : ToAsset(entity);
         }
         #endregion
