@@ -37,8 +37,6 @@ namespace Pixelynx.Api.Types
         public string Hello() => "world";
 
         public string Me([Service]IHttpContextAccessor context) => $"Hello, your Id is: {context.HttpContext.User.Identity.Name}";
-        
-        
 
         public async Task<List<Asset>> GetAssets(
             [Service]IBlobStorage blobStorage,

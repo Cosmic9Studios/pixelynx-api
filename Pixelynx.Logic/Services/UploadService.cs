@@ -40,8 +40,7 @@ namespace Pixelynx.Logic.Services
                     }
                     logger.Log(LogLevel.Information, $"Uploading Asset {asset.Metadata.Name} with ParentId: {parent?.Id}");
                 }
-
-                await unitOfWork.SaveChanges();
+                
                 return true;
             }
             catch (Exception ex) 

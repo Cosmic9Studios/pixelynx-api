@@ -8,24 +8,17 @@ namespace Pixelynx.Data.Models
 {
     public class UnitOfWork
     {
-        private static PixelynxContext context;
         private static IBlobStorage storage;
         private static StorageSettings storageSettings;
 
-        public UnitOfWork(PixelynxContext pixelynxContext, IBlobStorage blobStorage, IOptions<StorageSettings> settings)
+        public UnitOfWork(DbContextFactory dbContextFactory, IBlobStorage blobStorage, IOptions<StorageSettings> settings)
         {
-            context = pixelynxContext;
             storage = blobStorage;
             storageSettings = settings.Value;
 
-            AssetRepository = new AssetRepository(context, storage, storageSettings.BucketName);
+            AssetRepository = new AssetRepository(dbContextFactory, storage, storageSettings.BucketName);
         }
 
         public AssetRepository AssetRepository { get; }
-
-        public async Task SaveChanges()
-        {
-            await context.SaveChangesAsync();
-        }
     }
 }

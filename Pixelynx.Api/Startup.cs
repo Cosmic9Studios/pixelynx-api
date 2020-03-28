@@ -72,8 +72,9 @@ namespace Pixelynx.Api
             }
 
             // Services
+            services.AddSingleton<DbContextFactory>(new DbContextFactory(connectionString));
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Transient);
-            services.AddTransient<UnitOfWork, UnitOfWork>();
+            services.AddSingleton<UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();
 
