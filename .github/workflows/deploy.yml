@@ -12,7 +12,9 @@ jobs:
         version: '0.12.21'
 
     - name: Add GPG
-      run: sudo apt-get install -y gnupg2
+      run: | 
+        sudo apt-get update
+        sudo apt-get install -y gnupg2
 
     - name: Deploy Staging
       env:
@@ -33,7 +35,9 @@ jobs:
         version: '0.12.21'
 
     - name: Add GPG
-      run: sudo apt-get install -y gnupg2
+      run: | 
+        sudo apt-get update
+        sudo apt-get install -y gnupg2
 
     - name: Deploy Production
       env:
