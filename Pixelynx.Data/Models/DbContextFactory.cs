@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Data.Models
 {
-    public class DbContextFactory
+    public class DbContextFactory : IDbContextFactory
     {
         private string connectionString;
 

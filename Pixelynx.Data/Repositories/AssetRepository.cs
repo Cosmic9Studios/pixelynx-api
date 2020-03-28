@@ -7,20 +7,20 @@ using Pixelynx.Core;
 using Pixelynx.Core.Helpers;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Entities;
-using Pixelynx.Data.Models;
+using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Data.Repositories
 {
     public class AssetRepository
     {
         #region Fields.
-        private DbContextFactory dbContextFactory;
+        private IDbContextFactory dbContextFactory;
         private IBlobStorage blobStorage;
         private string bucketName;
         #endregion
 
         #region Constructors.
-        public AssetRepository(DbContextFactory dbContextFactory, IBlobStorage blobStorage, string bucketName)
+        public AssetRepository(IDbContextFactory dbContextFactory, IBlobStorage blobStorage, string bucketName)
         {
             this.dbContextFactory = dbContextFactory;
             this.blobStorage = blobStorage;
