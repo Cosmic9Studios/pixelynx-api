@@ -3,29 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Pixelynx.Core;
 using Pixelynx.Core.Helpers;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Entities;
+using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Data.Repositories
 {
     public class AssetRepository
     {
         #region Fields.
-        private DbSet<AssetEntity> DbSet;
-        private IIncludableQueryable<AssetEntity, AssetEntity> DbQuery;
+        private IDbContextFactory dbContextFactory;
         private IBlobStorage blobStorage;
         private string bucketName;
         #endregion
 
         #region Constructors.
-        public AssetRepository(PixelynxContext context, IBlobStorage blobStorage, string bucketName)
+        public AssetRepository(IDbContextFactory dbContextFactory, IBlobStorage blobStorage, string bucketName)
         {
-            DbSet = context.Set<AssetEntity>();
-            DbQuery = DbSet.Include(x => x.Parent); 
-            DbQuery.Load();
+            this.dbContextFactory = dbContextFactory;
             this.blobStorage = blobStorage;
             this.bucketName = bucketName;
         }
@@ -34,66 +31,89 @@ namespace Pixelynx.Data.Repositories
         #region Mutation Methods.
         public async Task CreateAsset(Asset asset)
         {
-            var storageId = Guid.NewGuid();
-            await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "asset.glb", asset.RawData); 
-            if (asset.Thumbnail != null)
+            using (var context = dbContextFactory.Create())
             {
-                await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "thumbnail.png", asset.Thumbnail.RawData);
-            }
+                var storageId = Guid.NewGuid();
+                await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "asset.glb", asset.RawData); 
+                if (asset.Thumbnail != null)
+                {
+                    await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "thumbnail.png", asset.Thumbnail.RawData);
+                }
 
-            await DbSet.AddAsync(new AssetEntity 
-            {
-                Id = asset.Id, 
-                ParentId = asset.Parent?.Id, 
-                Name = asset.Name,
-                StorageBucket = bucketName,
-                StorageId = storageId,
-                AssetType = (int)asset.Type, 
-                FileHash = asset.RawData.GenerateHash()
-            });
+                await context.Assets.AddAsync(new AssetEntity 
+                {
+                    Id = asset.Id, 
+                    ParentId = asset.Parent?.Id, 
+                    Name = asset.Name,
+                    StorageBucket = bucketName,
+                    StorageId = storageId,
+                    AssetType = (int)asset.Type, 
+                    FileHash = asset.RawData.GenerateHash()
+                });
+
+                await context.SaveChangesAsync();
+            }
         }
         #endregion
 
         #region Query Methods.
         public async Task<List<Asset>> GetAllAssets()
         {
-            var allAssets = await DbQuery.ToListAsync();
-            return allAssets.Select(x =>
+            using (var context = dbContextFactory.Create())
             {
-                return ToAsset(x);
-            }).ToList();
+                var allAssets = await context.Assets.Include(x => x.Parent).ToListAsync();
+                return allAssets.Select(x =>
+                {
+                    return ToAsset(x);
+                }).ToList();
+            }
         }
 
         public async Task<IEnumerable<Asset>> FindAssets(string filter, string assetType, Guid? parentId)
         {
-            return (await DbQuery
-                .Where(x => parentId == Guid.Empty || x.ParentId == parentId)
-                .Where(x => string.IsNullOrWhiteSpace(filter) || EF.Functions.ILike(x.Name, $"%{filter}%"))
-                .Where(x => string.IsNullOrWhiteSpace(assetType) || Convert.ToInt32(Enum.Parse<Core.AssetType>(assetType)) == x.AssetType)
-                .ToListAsync())
-                .Select(ToAsset);
+            using (var context = dbContextFactory.Create())
+            {
+                return (await context.Assets.Include(x => x.Parent)
+                    .Where(x => parentId == Guid.Empty || x.ParentId == parentId)
+                    .Where(x => string.IsNullOrWhiteSpace(filter) || EF.Functions.ILike(x.Name, $"%{filter}%"))
+                    .Where(x => string.IsNullOrWhiteSpace(assetType) || Convert.ToInt32(Enum.Parse<Core.AssetType>(assetType)) == x.AssetType)
+                    .ToListAsync())
+                    .Select(ToAsset);
+            }
         }
 
         public async Task<IEnumerable<Asset>> GetAssetsById(Guid[] ids)
         {
-            return (await DbQuery.Where(x => ids.Any(y => y == x.Id)).ToListAsync()).Select(x => ToAsset(x));
+            using (var context = dbContextFactory.Create())
+            {
+                return (await context.Assets.Include(x => x.Parent).Where(x => ids.Any(y => y == x.Id)).ToListAsync()).Select(x => ToAsset(x));
+            }
         }
 
         public async Task<Asset> GetAssetById(Guid id)
         {
-            return ToAsset(await DbQuery.FirstAsync(x => x.Id == id));
+            using (var context = dbContextFactory.Create())
+            {
+                return ToAsset(await context.Assets.Include(x => x.Parent).FirstAsync(x => x.Id == id));
+            }
         }
 
         public async Task<IEnumerable<Asset>> GetAssetsByType(AssetType assetType)
         {
-            int type = (int)assetType;
-            return (await DbQuery.Where(x => x.AssetType == type).ToListAsync()).Select(ToAsset);
+            using (var context = dbContextFactory.Create())
+            {
+                int type = (int)assetType;
+                return (await context.Assets.Include(x => x.Parent).Where(x => x.AssetType == type).ToListAsync()).Select(ToAsset);
+            }
         }
 
         public async Task<Asset> GetAssetByFileHash(string hash)
         {
-            var entity = await DbQuery.Where(x => x.FileHash == hash).FirstOrDefaultAsync();
-            return entity == null ? null : ToAsset(entity);
+            using (var context = dbContextFactory.Create())
+            {
+                var entity = await context.Assets.Include(x => x.Parent).Where(x => x.FileHash == hash).FirstOrDefaultAsync();
+                return entity == null ? null : ToAsset(entity);
+            }
         }
         #endregion
 

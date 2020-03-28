@@ -34,14 +34,13 @@ namespace Pixelynx.Logic.Services
                     await unitOfWork.AssetRepository.CreateAsset(newAsset);
 
                     // Model is always guaranteed to be first the list because form data comes in order (HTML SPEC)
-                    if (asset.Metadata.Type == Core.AssetType.Model && parent == null)
+                    if (asset.Metadata.Type == Core.AssetType.Model)
                     {
                         parent = newAsset;
                     }
                     logger.Log(LogLevel.Information, $"Uploading Asset {asset.Metadata.Name} with ParentId: {parent?.Id}");
                 }
-
-                await unitOfWork.SaveChanges();
+                
                 return true;
             }
             catch (Exception ex) 

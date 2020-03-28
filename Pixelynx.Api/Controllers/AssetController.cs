@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using System.Linq;
 using Pixelynx.Logic.Services;
 using Pixelynx.Logic.Model;
-using Pixelynx.Logic.Helpers;
 using Newtonsoft.Json;
 
 namespace Pixelynx.Api.Controllers

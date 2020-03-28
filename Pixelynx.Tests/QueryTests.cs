@@ -35,7 +35,6 @@ namespace Pixelynx.Tests
 
             await unitOfWork.AssetRepository.CreateAsset(new Core.Asset("robot", Core.AssetType.Model, storageId1));
             await unitOfWork.AssetRepository.CreateAsset(new Core.Asset("foo", Core.AssetType.Model, storageId2));
-            await unitOfWork.SaveChanges();
         }
 
         public Task DisposeAsync()

@@ -37,8 +37,6 @@ namespace Pixelynx.Api.Types
         public string Hello() => "world";
 
         public string Me([Service]IHttpContextAccessor context) => $"Hello, your Id is: {context.HttpContext.User.Identity.Name}";
-        
-        
 
         public async Task<List<Asset>> GetAssets(
             [Service]IBlobStorage blobStorage,
@@ -47,7 +45,7 @@ namespace Pixelynx.Api.Types
             string type = null,
             string parentId = null)
         {
-                return (await unitOfWork.AssetRepository.FindAssets(filter, type, Guid.TryParse(parentId, out  var guid) ? guid : Guid.Empty))
+                return (await unitOfWork.AssetRepository.FindAssets(filter, type, Guid.TryParse(parentId, out var guid) ? guid : Guid.Empty))
                 .Select(x => 
                 {
                     return new Asset
@@ -55,7 +53,9 @@ namespace Pixelynx.Api.Types
                         Id = x.Id,
                         Uri = x.Uri,
                         ThumbnailUri = x.Thumbnail?.Uri,
-                        Name = x.Name
+                        Name = x.Name,
+                        Type = x.Type.ToString(),
+                        ParentId = x.Parent?.Id
                     };
                 }).ToList();
         }

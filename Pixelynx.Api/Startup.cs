@@ -27,6 +27,7 @@ using Pixelynx.Logic.Helpers;
 using Pixelynx.Data.Models;
 using Pixelynx.Data.Settings;
 using Google.Cloud.Storage.V1;
+using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Api
 {
@@ -72,8 +73,9 @@ namespace Pixelynx.Api
             }
 
             // Services
+            services.AddSingleton<IDbContextFactory, DbContextFactory>(options => new DbContextFactory(connectionString));
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Transient);
-            services.AddScoped<UnitOfWork, UnitOfWork>();
+            services.AddSingleton<UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();
 
