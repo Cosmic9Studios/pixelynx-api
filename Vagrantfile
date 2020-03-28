@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+$enable_serial_logging = false
+
 Vagrant.configure("2") do |config|
     config.vm.box = "centos/7"
     config.vm.network "forwarded_port", guest: 9000, host: 9000, host_ip: "127.0.0.1"
