@@ -47,7 +47,7 @@ namespace Pixelynx.Api.Types
             string type = null,
             string parentId = null)
         {
-                return (await unitOfWork.AssetRepository.FindAssets(filter, type, Guid.TryParse(parentId, out  var guid) ? guid : Guid.Empty))
+                return (await unitOfWork.AssetRepository.FindAssets(filter, type, Guid.TryParse(parentId, out var guid) ? guid : Guid.Empty))
                 .Select(x => 
                 {
                     return new Asset
@@ -55,7 +55,9 @@ namespace Pixelynx.Api.Types
                         Id = x.Id,
                         Uri = x.Uri,
                         ThumbnailUri = x.Thumbnail?.Uri,
-                        Name = x.Name
+                        Name = x.Name,
+                        Type = x.Type.ToString(),
+                        ParentId = x.Parent?.Id
                     };
                 }).ToList();
         }
