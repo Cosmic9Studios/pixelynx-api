@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
+using Pixelynx.Api.Arguments;
 using Pixelynx.Api.Types;
 using Pixelynx.Data.Models;
 using Pixelynx.Data.Settings;
@@ -46,7 +47,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "", "", "");
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments());
 
             result.Should().HaveCount(2);
         }
@@ -55,7 +56,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldOnlyReturnAssetsThatContainFilter()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), "robot", "", "");
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments { Filter = "robot" });
 
             result.Should().HaveCount(1);
         }
