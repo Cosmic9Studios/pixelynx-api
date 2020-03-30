@@ -6,6 +6,7 @@ using HotChocolate;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Pixelynx.Api.Arguments;
 using Pixelynx.Api.Settings;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Models;
@@ -19,7 +20,7 @@ namespace Pixelynx.Api.Types
         {
             descriptor.Field(x => x.Hello()).Type<NonNullType<StringType>>();
             descriptor.Field(x => x.Me(default)).Authorize();
-            descriptor.Field(x => x.GetAssets(default, default, default, default, default));
+            descriptor.Field(x => x.GetAssets(default, default, default));
         }
     }
     
@@ -32,8 +33,6 @@ namespace Pixelynx.Api.Types
             this.unitOfWork = unitOfWork;
         }
 
-        private readonly IEnumerable<string> modelTypes = new List<string> { ".glb", ".gltf" };
-
         public string Hello() => "world";
 
         public string Me([Service]IHttpContextAccessor context) => $"Hello, your Id is: {context.HttpContext.User.Identity.Name}";
@@ -41,12 +40,17 @@ namespace Pixelynx.Api.Types
         public async Task<List<Asset>> GetAssets(
             [Service]IBlobStorage blobStorage,
             [Service]IOptions<StorageSettings> storageSettings,
-            string filter = null,
-            string type = null,
-            string parentId = null)
+            AssetArguments args)
         {
-                return (await unitOfWork.AssetRepository.FindAssets(filter, type, Guid.TryParse(parentId, out var guid) ? guid : Guid.Empty))
-                .Select(x => 
+                var assets = await unitOfWork.AssetRepository.FindAssets(args.Filter, args.Type, Guid.TryParse(args.ParentId, out var guid) ? guid : Guid.Empty); 
+                if (args.Random.Value) 
+                {
+                    Random rand = new Random();
+                    int toSkip = rand.Next(0, assets.Count());
+                    assets = assets.Skip(toSkip).Take(1);
+                }
+
+                return assets.Select(x =>
                 {
                     return new Asset
                     {
