@@ -65,22 +65,5 @@ namespace Pixelynx.Api.Controllers
             var intent = service.Create(options);
             return Ok(intent.ClientSecret);
         }
-
-        [Route("credits"), HttpPost]
-        public void AddCredits(AddCreditsRequest request)
-        {
-            var options = new PaymentIntentCreateOptions
-            {
-                Amount = request.Credits,
-                Currency = "usd",
-                Metadata = new Dictionary<string, string>
-                {
-                    { "integration_check", "accept_a_payment" },
-                },
-            };
-
-            var service = new PaymentIntentService();
-            var paymentIntent = service.Create(options);
-        }
     }
 }
