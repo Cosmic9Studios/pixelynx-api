@@ -7,7 +7,7 @@ sleep 5;
 vault login token 
 vault secrets disable secret
 vault secrets enable -path=secret -version=1 kv
-vault kv put secret/Auth JWTSecret="bfe222e7-b5eb-4d31-91df-c30797324fbc"
+vault kv put secret/Auth JWTSecret="bfe222e7-b5eb-4d31-91df-c30797324fbc" StripeSecretKey="sk_test_7C2P4QKZAOKjdUpEkNSB7C3L"
 vault secrets enable database
 vault write database/config/my-postgresql-database \
     plugin_name=postgresql-database-plugin \
