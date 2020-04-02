@@ -31,8 +31,12 @@ namespace Pixelynx.Data
             builder.Entity<UserClaim>().ToTable("UserClaims");
 
             builder.Entity<AssetEntity>().ToTable("Assets");
+            builder.Entity<TransactionEntity>().ToTable("Transactions");
+            builder.Entity<PaymentEntity>().ToTable("PaymentDetails");
         }
 
         public DbSet<AssetEntity> Assets { get; set; }  
+        public DbSet<TransactionEntity> Transactions { get; set; }
+        public DbSet<PaymentEntity> PaymentDetails { get; set; }
     }
 }

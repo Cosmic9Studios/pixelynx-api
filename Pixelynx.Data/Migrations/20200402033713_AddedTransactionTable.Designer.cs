@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pixelynx.Data;
@@ -9,9 +10,10 @@ using Pixelynx.Data;
 namespace Pixelynx.Data.Migrations
 {
     [DbContext(typeof(PixelynxContext))]
-    partial class PixelynxContextModelSnapshot : ModelSnapshot
+    [Migration("20200402033713_AddedTransactionTable")]
+    partial class AddedTransactionTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,25 +50,6 @@ namespace Pixelynx.Data.Migrations
                     b.HasIndex("ParentId");
 
                     b.ToTable("Assets");
-                });
-
-            modelBuilder.Entity("Pixelynx.Data.Entities.PaymentEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CustomerId")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PaymentDetails");
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Entities.TransactionEntity", b =>
@@ -298,15 +281,6 @@ namespace Pixelynx.Data.Migrations
                     b.HasOne("Pixelynx.Data.Entities.AssetEntity", "Parent")
                         .WithMany()
                         .HasForeignKey("ParentId");
-                });
-
-            modelBuilder.Entity("Pixelynx.Data.Entities.PaymentEntity", b =>
-                {
-                    b.HasOne("Pixelynx.Data.Entities.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Pixelynx.Data.Entities.TransactionEntity", b =>

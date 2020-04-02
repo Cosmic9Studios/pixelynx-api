@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 namespace Pixelynx.Data.Entities
@@ -8,5 +7,6 @@ namespace Pixelynx.Data.Entities
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public int Credits { get; set; }
     }
 }
