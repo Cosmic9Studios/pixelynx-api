@@ -28,6 +28,7 @@ using Pixelynx.Data.Models;
 using Pixelynx.Data.Settings;
 using Google.Cloud.Storage.V1;
 using Pixelynx.Data.Interfaces;
+using Stripe;
 
 namespace Pixelynx.Api
 {
@@ -56,6 +57,8 @@ namespace Pixelynx.Api
             services.Configure<AuthSettings>(Configuration.GetSection("Auth"));
             services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
+
+            StripeConfiguration.ApiKey = Configuration.GetSection("Auth")["StripeSecretKey"];
             
             // Environment specific services
             if (HostingEnvironment.EnvironmentName == "Development")

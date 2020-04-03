@@ -17,8 +17,10 @@ namespace Pixelynx.Data.Models
             storageSettings = settings.Value;
 
             AssetRepository = new AssetRepository(dbContextFactory, storage, storageSettings.BucketName);
+            PaymentRepository = new PaymentRepository(dbContextFactory);
         }
 
         public AssetRepository AssetRepository { get; }
+        public PaymentRepository PaymentRepository { get; }
     }
 }

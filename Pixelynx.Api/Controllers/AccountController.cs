@@ -16,6 +16,7 @@ using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
 using Pixelynx.Api.Settings;
 using Pixelynx.Data.Entities;
+using Pixelynx.Data.Models;
 using Pixelynx.Logic.Interfaces;
 
 namespace Pixelynx.Api.Controllers
@@ -25,12 +26,14 @@ namespace Pixelynx.Api.Controllers
     {
         private ILogger<AccountController> logger;
         private UserManager<UserEntity> userManager;
+        private UnitOfWork unitOfWork;
 
         #region Constructors
-        public AccountController(ILogger<AccountController> logger, UserManager<UserEntity> userManager)
+        public AccountController(ILogger<AccountController> logger, UserManager<UserEntity> userManager, UnitOfWork unitOfWork)
         {
             this.logger = logger;
             this.userManager = userManager;
+            this.unitOfWork = unitOfWork;
         }
         #endregion
 
@@ -55,9 +58,11 @@ namespace Pixelynx.Api.Controllers
 
             return Ok(new UserDataResponse
             {
+                Id = user.Id,
                 UserName = user.UserName,
                 FirstName = user.FirstName, 
-                LastName = user.LastName
+                LastName = user.LastName, 
+                Email = email
             });
         }
 
@@ -150,7 +155,10 @@ namespace Pixelynx.Api.Controllers
         }
 
         [HttpGet, Route("confirm")]
-        public async Task<IActionResult> ConfirmAccount([FromServices] IEmailService emailService, [FromQuery] string userId, [FromQuery] string code, string type)
+        public async Task<IActionResult> ConfirmAccount(
+            [FromServices] IEmailService emailService, 
+            [FromServices] IOptions<AuthSettings> authSettings,
+            [FromQuery] string userId, [FromQuery] string code, string type)
         {
             var errors = new List<string>();
             if (Enum.TryParse<ConfirmationType>(type, true, out var confirmationType))
@@ -161,6 +169,7 @@ namespace Pixelynx.Api.Controllers
                     var result = await userManager.ConfirmEmailAsync(user, code);  
                     if (result.Succeeded)
                     {
+                        await unitOfWork.PaymentRepository.CreatePaymentAccount(user.Id);
                         await userManager.AddClaimAsync(user, new Claim("scope", "assets:read assets:write"));
                     }
                     else 
