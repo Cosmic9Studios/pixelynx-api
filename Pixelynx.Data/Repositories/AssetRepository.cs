@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Pixelynx.Core;
 using Pixelynx.Core.Helpers;
 using Pixelynx.Data.BlobStorage;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
+using Pixelynx.Data.Settings;
 
 namespace Pixelynx.Data.Repositories
 {
@@ -17,14 +19,16 @@ namespace Pixelynx.Data.Repositories
         private IDbContextFactory dbContextFactory;
         private IBlobStorage blobStorage;
         private string bucketName;
+        private long defaultAssetPrice;
         #endregion
 
         #region Constructors.
-        public AssetRepository(IDbContextFactory dbContextFactory, IBlobStorage blobStorage, string bucketName)
+        public AssetRepository(IDbContextFactory dbContextFactory, IBlobStorage blobStorage, StorageSettings storageSettings)
         {
             this.dbContextFactory = dbContextFactory;
             this.blobStorage = blobStorage;
-            this.bucketName = bucketName;
+            this.bucketName = storageSettings.BucketName;
+            this.defaultAssetPrice = storageSettings.DefaultAssetPrice;
         }
         #endregion
 
@@ -48,7 +52,8 @@ namespace Pixelynx.Data.Repositories
                     StorageBucket = bucketName,
                     StorageId = storageId,
                     AssetType = (int)asset.Type, 
-                    FileHash = asset.RawData.GenerateHash()
+                    FileHash = asset.RawData.GenerateHash(),
+                    Price = defaultAssetPrice
                 });
 
                 await context.SaveChangesAsync();
@@ -113,6 +118,14 @@ namespace Pixelynx.Data.Repositories
             {
                 var entity = await context.Assets.Include(x => x.Parent).Where(x => x.FileHash == hash).FirstOrDefaultAsync();
                 return entity == null ? null : ToAsset(entity);
+            }
+        }
+
+        public async Task<long> GetAssetCost(Guid assetId)
+        {
+            using (var context = dbContextFactory.Create())
+            {
+                return (await context.Assets.FirstAsync(x => x.Id == assetId)).Price;
             }
         }
         #endregion
