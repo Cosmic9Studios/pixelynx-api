@@ -16,7 +16,7 @@ namespace Pixelynx.Data.Models
             storage = blobStorage;
             storageSettings = settings.Value;
 
-            AssetRepository = new AssetRepository(dbContextFactory, storage, storageSettings.BucketName);
+            AssetRepository = new AssetRepository(dbContextFactory, storage, storageSettings);
             PaymentRepository = new PaymentRepository(dbContextFactory);
         }
 

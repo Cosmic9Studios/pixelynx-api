@@ -1,9 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Pixelynx.Data.Entities;
-using Pixelynx.Data.Enums;
 using Pixelynx.Data.Interfaces;
 using Stripe;
 
@@ -20,12 +19,35 @@ namespace Pixelynx.Data.Repositories
         {
             this.dbContextFactory = dbContextFactory;
         }
+        #endregion
 
+        #region Queries.
         public async Task<string> GetCustomerId(Guid userId)
         {
             using (var context = dbContextFactory.Create())
             {
                 return (await context.PaymentDetails.FirstAsync(x => x.UserId == userId)).CustomerId;
+            }
+        }
+
+        public async Task<string> GetDefaultPaymentId(Guid userId)
+        {
+            using (var context = dbContextFactory.Create())
+            {
+                return (await context.PaymentDetails.FirstAsync(x => x.UserId == userId)).DefaultPaymentMethodId;
+            }
+        }
+        #endregion
+
+        #region Mutations.
+        public async Task SetDefaultPaymentId(Guid userId, string paymentId)
+        {
+            using (var context = dbContextFactory.Create())
+            {
+                var paymentDetails = await context.PaymentDetails.FirstAsync(x => x.UserId == userId);
+                paymentDetails.DefaultPaymentMethodId = paymentId;
+                context.Update(paymentDetails);
+                await context.SaveChangesAsync();
             }
         }
 
@@ -37,12 +59,29 @@ namespace Pixelynx.Data.Repositories
 
             using (var context = dbContextFactory.Create())
             {
-                await context.PaymentDetails.AddAsync(new PaymentEntity
+                await context.PaymentDetails.AddAsync(new PaymentDetailsEntity
                 {
                     UserId = userId, 
                     CustomerId = customer.Id
                 });
 
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task PurchaseAssets(Guid userId, List<Guid> assets, string transactionId)
+        {
+            using (var context = dbContextFactory.Create())
+            {
+                assets.ForEach(async asset => {
+                    await context.PurchasedAssets.AddAsync(new PurchasedAssetEntity
+                    {
+                        AssetId = asset,
+                        UserId = userId,
+                        TransactionId = transactionId
+                    });
+                });
+                
                 await context.SaveChangesAsync();
             }
         }
@@ -56,13 +95,6 @@ namespace Pixelynx.Data.Repositories
                 {
                     throw new ArgumentException("User does not exist");
                 }
-
-                await context.Transactions.AddAsync(new TransactionEntity
-                {
-                    UserId = userId,
-                    Type = TransactionType.CREDIT,
-                    Value = credits
-                });
 
                 user.Credits += credits;
                 context.Users.Update(user);
@@ -86,13 +118,6 @@ namespace Pixelynx.Data.Repositories
                 {
                     throw new InvalidOperationException("Insufficient Funds");
                 }
-
-                await context.Transactions.AddAsync(new TransactionEntity
-                {
-                    UserId = userId,
-                    Type = TransactionType.SPEND,
-                    Value = cost
-                });
 
                 user.Credits -= cost;
                 context.Users.Update(user);

@@ -1,7 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Models;
 
@@ -31,12 +30,12 @@ namespace Pixelynx.Data
             builder.Entity<UserClaim>().ToTable("UserClaims");
 
             builder.Entity<AssetEntity>().ToTable("Assets");
-            builder.Entity<TransactionEntity>().ToTable("Transactions");
-            builder.Entity<PaymentEntity>().ToTable("PaymentDetails");
+            builder.Entity<PaymentDetailsEntity>().ToTable("PaymentDetails");
+            builder.Entity<PurchasedAssetEntity>().ToTable("PurchasedAssets");
         }
 
         public DbSet<AssetEntity> Assets { get; set; }  
-        public DbSet<TransactionEntity> Transactions { get; set; }
-        public DbSet<PaymentEntity> PaymentDetails { get; set; }
+        public DbSet<PaymentDetailsEntity> PaymentDetails { get; set; }
+        public DbSet<PurchasedAssetEntity> PurchasedAssets { get; set; }
     }
 }
