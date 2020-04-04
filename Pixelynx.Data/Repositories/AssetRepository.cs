@@ -125,7 +125,17 @@ namespace Pixelynx.Data.Repositories
         {
             using (var context = dbContextFactory.Create())
             {
-                return (await context.Assets.FirstAsync(x => x.Id == assetId)).Price;
+                var asset = await context.Assets.FirstAsync(x => x.Id == assetId);
+                return asset.Price;
+            }
+        }
+
+        public async Task<bool> IsOwned(Guid userId, Guid assetId)
+        {
+            using (var context = dbContextFactory.Create())
+            {
+                var asset = await context.PurchasedAssets.FirstOrDefaultAsync(x => x.UserId == userId && x.AssetId == assetId);
+                return asset != null;
             }
         }
         #endregion
