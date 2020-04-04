@@ -29,6 +29,13 @@ using Pixelynx.Data.Settings;
 using Google.Cloud.Storage.V1;
 using Pixelynx.Data.Interfaces;
 using Stripe;
+using System.Threading.Tasks;
+using VaultSharp.V1.AuthMethods.GoogleCloud;
+using VaultSharp.V1.AuthMethods.Token;
+using VaultSharp;
+using VaultSharp.V1.AuthMethods;
+using System.Collections.Generic;
+using C9S.Configuration.HashicorpVault.Helpers;
 
 namespace Pixelynx.Api
 {
@@ -54,12 +61,14 @@ namespace Pixelynx.Api
             services.AddControllers();
 
             // IOptions
-            services.Configure<AuthSettings>(Configuration.GetSection("Auth"));
             services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
 
             StripeConfiguration.ApiKey = Configuration.GetSection("Auth")["StripeSecretKey"];
-            
+
+            IAuthMethodInfo authMethod = null;
+            var roleName = "";
+
             // Environment specific services
             if (HostingEnvironment.EnvironmentName == "Development")
             {
@@ -67,15 +76,30 @@ namespace Pixelynx.Api
                 Configuration.GetSection("BlobStorage").Bind(blobSettings);    
     
                 services.AddSingleton<IBlobStorage>(new AmazonS3(blobSettings.Address, blobSettings.AccessKey, blobSettings.SecretKey));
+
+                roleName = "admin";
+                authMethod = new TokenAuthMethodInfo("token");
             }
             else
             { 
-                var urlSigner = GCPHelper.GetUrlSigner().Result;
+                var urlSigner = AsyncHelper.RunSync(GCPHelper.GetUrlSigner);
                 services.AddSingleton<UrlSigner>(urlSigner);
                 services.AddSingleton<IBlobStorage>(new GCStorage(urlSigner));
+
+                roleName = "my-iam-role";
+                authMethod = new GoogleCloudAuthMethodInfo(roleName, AsyncHelper.RunSync(GCPHelper.GetJwt));
             }
 
+            var address = Configuration.GetSection("Vault:Address").Get<string>();
+            var vaultClientSettings = new VaultClientSettings(address, authMethod);
+            var vaultClient = new VaultClient(vaultClientSettings);
+            var vaultService = new VaultService(vaultClient);
+            var dbCreds = AsyncHelper.RunSync(() => vaultClient.V1.Secrets.Database.GetCredentialsAsync(roleName));
+            connectionString += $"{dbCreds.Data.Password};";
+
             // Services
+            services.AddSingleton<IVaultClient>(vaultClient);
+            services.AddSingleton<IVaultService>(vaultService);
             services.AddSingleton<IDbContextFactory, DbContextFactory>(options => new DbContextFactory(connectionString));
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Transient);
             services.AddSingleton<UnitOfWork>();
@@ -87,7 +111,7 @@ namespace Pixelynx.Api
                 .AddEntityFrameworkStores<PixelynxContext>()
                 .AddDefaultTokenProviders();
 
-            var key = Encoding.ASCII.GetBytes(Configuration["Auth:JWTSecret"]);
+            var key = Encoding.ASCII.GetBytes(AsyncHelper.RunSync(vaultService.GetAuthSecrets).JWTSecret);
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
