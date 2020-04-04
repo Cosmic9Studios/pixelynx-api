@@ -26,12 +26,15 @@
     </PackageReference>
     <PackageReference Include="MoreLinq" Version="3.2.0" />
     <PackageReference Include="Stripe.net" Version="35.11.1" />
-    <PackageReference Include="VaultSharp" Version="0.11.1002" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Pixelynx.Logic\Pixelynx.Logic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Update="localhost.pfx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

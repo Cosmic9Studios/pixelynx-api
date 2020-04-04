@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Pixelynx.Logic.Interfaces
 {
     public interface IEmailService
     {
-        void SendEmail(string to, string subject, string body);
-        void SendEmailFromTemplate(string to, string subject, string templateName, Dictionary<string, string> variables);
+        Task SendEmailAsync(string to, string subject, string body);
+        Task SendEmailFromTemplateAsync(string to, string subject, string templateName, Dictionary<string, string> variables);
     }
 }

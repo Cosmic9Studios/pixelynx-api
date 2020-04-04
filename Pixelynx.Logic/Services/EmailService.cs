@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -12,13 +13,15 @@ namespace Pixelynx.Logic.Services
     public class EmailService : IEmailService
     {
         private EmailSettings emailSettings;
+        private IVaultService vaultService;
 
-        public EmailService(IOptions<EmailSettings> emailSettings)
+        public EmailService(IOptions<EmailSettings> emailSettings, IVaultService vaultService)
         {
             this.emailSettings = emailSettings?.Value;
+            this.vaultService = vaultService;
         }
 
-        public void SendEmail(string to, string subject, string body)
+        public async Task SendEmailAsync(string to, string subject, string body)
         {
             var message = new MimeMessage();
             var bodyBuilder = new BodyBuilder();
@@ -39,7 +42,7 @@ namespace Pixelynx.Logic.Services
 
 				if (!string.IsNullOrWhiteSpace(emailSettings.Username))
                 {
-                    client.Authenticate(emailSettings.Username, emailSettings.Password);
+                    client.Authenticate(emailSettings.Username, (await vaultService.GetAuthSecrets()).SendgridApiKey);
                 }
 
 				client.Send(message);
@@ -47,14 +50,14 @@ namespace Pixelynx.Logic.Services
 			}
         }
 
-        public void SendEmailFromTemplate(string to, string subject, string templateName, Dictionary<string, string> variables)
+        public async Task SendEmailFromTemplateAsync(string to, string subject, string templateName, Dictionary<string, string> variables)
         {
             var fileText = File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/EmailTemplates/{templateName}.html");
             foreach (var variable in variables)
             {
                 fileText = fileText.Replace($"[{variable.Key}]", variable.Value);
             }
-            SendEmail(to, subject, fileText);
+            await SendEmailAsync(to, subject, fileText);
         }
     }
 }

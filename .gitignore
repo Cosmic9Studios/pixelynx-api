@@ -6,3 +6,4 @@ node_modules
 .terragrunt*
 appsecrets.json
 .terraform/
+localhost.pfx

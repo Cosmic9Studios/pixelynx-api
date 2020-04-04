@@ -1,5 +1,24 @@
 # Project Setup 
 
+### Dev Certs 
+
+Run `cd Pixelynx.Api`
+Run `dotnet dev-certs https --clean` 
+Run `dotnet dev-certs https -ep "localhost.pfx" -p 1234 --trust`
+
+to enable https for local development
+
+### Webhooks
+
+If you are testing stripe webhooks, you have 2 options
+
+Option 1: Stripe's Cli
+Option 2: UltraHook -- http://www.ultrahook.com/ (If you decide to use UltraHook, you will need to let the Stripe Admin know so they can add your webhook address)
+
+##### UltraHook
+
+Once installed run `ultrahook stripe https://localhost:5000/stripe` to route stripe requests to the webhook
+
 ### Vagrant
 
 NOTE: MUST HAVE VIRTUALBOX INSTALLED

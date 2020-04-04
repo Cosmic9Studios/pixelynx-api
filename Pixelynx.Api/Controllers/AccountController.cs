@@ -69,10 +69,11 @@ namespace Pixelynx.Api.Controllers
         [HttpPost, Route("login"), AllowAnonymous]
         public async Task<ActionResult<LoginResponse>> Login(
             [FromServices] SignInManager<UserEntity> signInManager,
-            [FromServices] IOptions<AuthSettings> authSettings,
+            [FromServices] IVaultService vaultService,
             [FromBody] LoginRequest request 
         )
         {
+            var authSettings = await vaultService.GetAuthSecrets();
             logger.LogInformation($"Attempting login for {request.Email}");
 
             var user = await userManager.FindByEmailAsync(request.Email);
@@ -86,7 +87,7 @@ namespace Pixelynx.Api.Controllers
             if (result.Succeeded)
             {
                 await userManager.AddClaimAsync(user, new Claim(ClaimTypes.Email, user.Email));
-                var token = await user.GenerateToken(userManager, authSettings.Value.JWTSecret);
+                var token = await user.GenerateToken(userManager, authSettings.JWTSecret);
                 return new LoginResponse 
                 {
                     Token = token
@@ -156,8 +157,7 @@ namespace Pixelynx.Api.Controllers
 
         [HttpGet, Route("confirm")]
         public async Task<IActionResult> ConfirmAccount(
-            [FromServices] IEmailService emailService, 
-            [FromServices] IOptions<AuthSettings> authSettings,
+            [FromServices] IEmailService emailService,
             [FromQuery] string userId, [FromQuery] string code, string type)
         {
             var errors = new List<string>();
@@ -202,7 +202,7 @@ namespace Pixelynx.Api.Controllers
             var code = HttpUtility.UrlEncode(await userManager.GeneratePasswordResetTokenAsync(user));
             var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.ResetPassword);
 
-            emailService.SendEmailFromTemplate(user.Email, "Pixelynx - Forgot Password", "ForgotPassword", new Dictionary<string, string> 
+            await emailService.SendEmailFromTemplateAsync(user.Email, "Pixelynx - Forgot Password", "ForgotPassword", new Dictionary<string, string> 
             {
                 ["Sender"] = user.FirstName,
                 ["Button_Url"] = confirmationUrl
@@ -231,7 +231,7 @@ namespace Pixelynx.Api.Controllers
         {
             var code = HttpUtility.UrlEncode(await userManager.GenerateEmailConfirmationTokenAsync(user));
             var confirmationUrl = user.GenerateConfirmationUrl(this.Request, code, ConfirmationType.Account);
-            emailService.SendEmailFromTemplate(user.Email, "Pixelynx - Confirm your account", "Register", new Dictionary<string, string> 
+            await emailService.SendEmailFromTemplateAsync(user.Email, "Pixelynx - Confirm your account", "Register", new Dictionary<string, string> 
             {
                 ["Sender"] = user.FirstName,
                 ["Button_Url"] = confirmationUrl
