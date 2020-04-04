@@ -32,13 +32,6 @@ namespace Pixelynx.Data
             builder.Entity<AssetEntity>().ToTable("Assets");
             builder.Entity<PaymentDetailsEntity>().ToTable("PaymentDetails");
             builder.Entity<PurchasedAssetEntity>().ToTable("PurchasedAssets");
-
-            builder.Entity<AssetEntity>(entity =>
-            {
-                entity.Property(e => e.Price)
-                .HasDefaultValue(0)
-                .ValueGeneratedOnAddOrUpdate();
-            });
         }
 
         public DbSet<AssetEntity> Assets { get; set; }  

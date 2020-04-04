@@ -67,11 +67,37 @@ namespace Pixelynx.Api.Controllers
             return Ok(intent.ClientSecret);
         }
 
+        [Route("wallet/cards/default"), HttpPost]
+        public async Task<IActionResult> SetDefaultCard([FromBody] SetDefaultCardRequest request)
+        {
+            var userId = Guid.Parse(HttpContext.User.Identity.Name);
+            await unitOfWork.PaymentRepository.SetDefaultPaymentId(userId, request.PaymentMethodId);
+            return Ok();
+        }
+
+        [Route("wallet/cards/default"), HttpGet]
+        public async Task<IActionResult> GetDefaultCard()
+        {
+            var userId = Guid.Parse(HttpContext.User.Identity.Name);
+            return Ok(await unitOfWork.PaymentRepository.GetDefaultPaymentId(userId));
+        } 
+
         [Route("purchase")]
         public async Task<IActionResult> Purhase([FromBody] PurchaseAssetsRequest request)
         {
             var userId = HttpContext.User.Identity.Name;
-            var total = request.Assets.Select(x => AsyncHelper.RunSync(() => unitOfWork.AssetRepository.GetAssetCost(x))).Sum();
+            var assets = request.Assets.Where(x => AsyncHelper.RunSync(() => unitOfWork.AssetRepository.IsOwned(Guid.Parse(userId), x)) == false);
+            var total = assets.Select(x => AsyncHelper.RunSync(() => unitOfWork.AssetRepository.GetAssetCost(x))).Sum();
+            
+            if (total == 0)
+            {
+                if (assets.Any())
+                {
+                    await unitOfWork.PaymentRepository.PurchaseAssets(Guid.Parse(userId), assets.ToList(), "free");
+                }
+                return Ok("free");
+            }
+            
             var options = new PaymentIntentCreateOptions
             {
                 Customer = await unitOfWork.PaymentRepository.GetCustomerId(Guid.Parse(userId)),

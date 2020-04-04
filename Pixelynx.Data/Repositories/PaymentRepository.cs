@@ -19,12 +19,35 @@ namespace Pixelynx.Data.Repositories
         {
             this.dbContextFactory = dbContextFactory;
         }
+        #endregion
 
+        #region Queries.
         public async Task<string> GetCustomerId(Guid userId)
         {
             using (var context = dbContextFactory.Create())
             {
                 return (await context.PaymentDetails.FirstAsync(x => x.UserId == userId)).CustomerId;
+            }
+        }
+
+        public async Task<string> GetDefaultPaymentId(Guid userId)
+        {
+            using (var context = dbContextFactory.Create())
+            {
+                return (await context.PaymentDetails.FirstAsync(x => x.UserId == userId)).DefaultPaymentMethodId;
+            }
+        }
+        #endregion
+
+        #region Mutations.
+        public async Task SetDefaultPaymentId(Guid userId, string paymentId)
+        {
+            using (var context = dbContextFactory.Create())
+            {
+                var paymentDetails = await context.PaymentDetails.FirstAsync(x => x.UserId == userId);
+                paymentDetails.DefaultPaymentMethodId = paymentId;
+                context.Update(paymentDetails);
+                await context.SaveChangesAsync();
             }
         }
 
