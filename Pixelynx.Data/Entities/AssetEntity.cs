@@ -12,6 +12,7 @@ namespace Pixelynx.Data.Entities
         public string StorageBucket { get; set; }
         public int AssetType { get; set; }
         public string FileHash { get; set; }
+        public long Price { get; set; }
 
         [ForeignKey("ParentId")]
         public AssetEntity Parent { get; set; }

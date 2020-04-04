@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Pixelynx.Data.Entities
 {
-    public class PaymentEntity
+    public class PaymentDetailsEntity
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }

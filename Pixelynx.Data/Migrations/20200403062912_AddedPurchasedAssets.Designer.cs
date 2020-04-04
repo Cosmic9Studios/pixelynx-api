@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pixelynx.Data;
@@ -9,9 +10,10 @@ using Pixelynx.Data;
 namespace Pixelynx.Data.Migrations
 {
     [DbContext(typeof(PixelynxContext))]
-    partial class PixelynxContextModelSnapshot : ModelSnapshot
+    [Migration("20200403062912_AddedPurchasedAssets")]
+    partial class AddedPurchasedAssets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,9 +40,7 @@ namespace Pixelynx.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<long>("Price")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bigint")
-                        .HasDefaultValue(0L);
+                        .HasColumnType("bigint");
 
                     b.Property<string>("StorageBucket")
                         .HasColumnType("text");
