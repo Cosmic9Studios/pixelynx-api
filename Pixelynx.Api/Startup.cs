@@ -64,8 +64,6 @@ namespace Pixelynx.Api
             services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
 
-            StripeConfiguration.ApiKey = Configuration.GetSection("Auth")["StripeSecretKey"];
-
             IAuthMethodInfo authMethod = null;
             var roleName = "";
 
@@ -96,6 +94,8 @@ namespace Pixelynx.Api
             var vaultService = new VaultService(vaultClient);
             var dbCreds = AsyncHelper.RunSync(() => vaultClient.V1.Secrets.Database.GetCredentialsAsync(roleName));
             connectionString += $"{dbCreds.Data.Password};";
+
+            StripeConfiguration.ApiKey = AsyncHelper.RunSync(vaultService.GetAuthSecrets).StripeSecretKey;
 
             // Services
             services.AddSingleton<IVaultClient>(vaultClient);
