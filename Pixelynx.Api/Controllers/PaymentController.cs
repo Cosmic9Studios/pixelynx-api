@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using C9S.Configuration.HashicorpVault.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
@@ -20,7 +21,7 @@ namespace Pixelynx.Api.Controllers
             this.unitOfWork = unitOfWork;
         }
 
-        [Route("cards"), HttpGet]
+        [Route("wallet/cards"), HttpGet]
         public async Task<IActionResult> GetCards()
         {
             var service = new PaymentMethodService();
@@ -54,16 +55,39 @@ namespace Pixelynx.Api.Controllers
             return Ok();
         }
 
-        [Route("wallet"), HttpGet]
-        public async Task<IActionResult> GetWallet()
+        [Route("wallet/card"), HttpPost]
+        public async Task<IActionResult> AddCard()
         {
             var userId = Guid.Parse(HttpContext.User.Identity.Name);
             var options = new SetupIntentCreateOptions{
                 Customer = await unitOfWork.PaymentRepository.GetCustomerId(userId),
             };
             var service = new SetupIntentService();
-            var intent = service.Create(options);
+            var intent = await service.CreateAsync(options);
             return Ok(intent.ClientSecret);
+        }
+
+        [Route("purchase")]
+        public async Task<IActionResult> Purhase([FromBody] PurchaseAssetsRequest request)
+        {
+            var userId = HttpContext.User.Identity.Name;
+            var total = request.Assets.Select(x => AsyncHelper.RunSync(() => unitOfWork.AssetRepository.GetAssetCost(x))).Sum();
+            var options = new PaymentIntentCreateOptions
+            {
+                Customer = await unitOfWork.PaymentRepository.GetCustomerId(Guid.Parse(userId)),
+                Amount = (long)total * 100,
+                Currency = "usd",
+                Metadata = new Dictionary<string, string>
+                {
+                    { "userId", userId },
+                    { "assets", string.Join(',', request.Assets) },
+                },
+            };
+
+            var service = new PaymentIntentService();
+            var paymentIntent = await service.CreateAsync(options);
+
+            return Ok(paymentIntent.ClientSecret);
         }
     }
 }
