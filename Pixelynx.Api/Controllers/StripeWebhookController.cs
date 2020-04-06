@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using C9S.Configuration.HashicorpVault.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
-using Pixelynx.Logic.Interfaces;
 using Stripe;
 
 namespace Pixelynx.Api.Controllers

@@ -91,17 +91,19 @@ namespace Pixelynx.Api
             var address = Configuration.GetSection("Vault:Address").Get<string>();
             var vaultClientSettings = new VaultClientSettings(address, authMethod);
             var vaultClient = new VaultClient(vaultClientSettings);
-            var vaultService = new VaultService(vaultClient);
+            var vaultService = new VaultService(vaultClient, roleName);
             var dbCreds = AsyncHelper.RunSync(() => vaultClient.V1.Secrets.Database.GetCredentialsAsync(roleName));
-            connectionString += $"{dbCreds.Data.Password};";
 
             StripeConfiguration.ApiKey = AsyncHelper.RunSync(vaultService.GetAuthSecrets).StripeSecretKey;
 
             // Services
             services.AddSingleton<IVaultClient>(vaultClient);
             services.AddSingleton<IVaultService>(vaultService);
-            services.AddSingleton<IDbContextFactory, DbContextFactory>(options => new DbContextFactory(connectionString));
-            services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Transient);
+            services.AddSingleton<IDbContextFactory, DbContextFactory>(options => new DbContextFactory(connectionString, vaultService));
+            services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString
+                    .Replace("{Db.UserName}", dbCreds.Data.Username)
+                    .Replace("{Db.Password}", dbCreds.Data.Password)
+            ));
             services.AddSingleton<UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();

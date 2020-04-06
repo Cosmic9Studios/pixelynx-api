@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using C9S.Configuration.HashicorpVault.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
@@ -11,7 +12,7 @@ using Stripe;
 
 namespace Pixelynx.Api.Controllers
 {
-    [Route("payment")]
+    [Route("payment"), Authorize]
     public class PaymentController : Controller
     {
         private UnitOfWork unitOfWork;
