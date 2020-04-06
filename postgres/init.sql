@@ -1,1 +1,1 @@
-CREATE USER vault;
+CREATE ROLE vault WITH PASSWORD 'devpass'
