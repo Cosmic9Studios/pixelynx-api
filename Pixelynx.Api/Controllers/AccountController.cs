@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Pixelynx.Api.Helpers;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
-using Pixelynx.Api.Settings;
 using Pixelynx.Data.Entities;
+using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
 using Pixelynx.Logic.Interfaces;
 

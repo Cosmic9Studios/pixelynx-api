@@ -1,4 +1,4 @@
-namespace Pixelynx.Logic.Settings
+namespace Pixelynx.Data.Settings
 {
     public class VaultAuthSettings
     {

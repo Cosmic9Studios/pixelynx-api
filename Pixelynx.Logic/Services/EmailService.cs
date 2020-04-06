@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Pixelynx.Data.Interfaces;
 using Pixelynx.Logic.Interfaces;
 using Pixelynx.Logic.Settings;
 
