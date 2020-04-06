@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Pixelynx.Core.Helpers;
@@ -8,23 +9,26 @@ namespace Pixelynx.Data.Models
     public class DbContextFactory : IDbContextFactory
     {
         private string connectionString;
+        private string pollutedConnectionString;
         private IVaultService vaultService;
 
         public DbContextFactory(string connectionString, IVaultService vaultService) 
         {
             this.vaultService = vaultService;
             this.connectionString = connectionString;
+            var timer = new System.Threading.Timer((e) =>
+            {
+                var db = AsyncHelper.RunSync(() => vaultService.GetDbCredentials());
+                pollutedConnectionString = connectionString
+                    .Replace("{Db.UserName}", db.Key)
+                    .Replace("{Db.Password}", db.Value);
+            }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
         }
 
         public PixelynxContext Create()
         {
-            // Todo: Optimize so new password gets generate every x amount of times
-            var db = AsyncHelper.RunSync(() => vaultService.GetDbCredentials());
             var options = new DbContextOptionsBuilder<PixelynxContext>()
-                .UseNpgsql(connectionString
-                    .Replace("{Db.UserName}", db.Key)
-                    .Replace("{Db.Password}", db.Value)
-                ).Options;
+                .UseNpgsql(pollutedConnectionString).Options;
 
             return new PixelynxContext(options);
         }
