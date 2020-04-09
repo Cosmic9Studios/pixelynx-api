@@ -13,6 +13,10 @@ Vagrant.configure("2") do |config|
     config.vm.network "private_network", ip: "192.168.50.50"
     config.vm.synced_folder ".", "/vagrant", type: "rsync"
 
+    config.vm.provider "virtualbox" do |v|
+        v.customize ["modifyvm", :id, "--cpuexecutioncap", "10"]
+    end
+
     config.vm.provision "docker" do |d|
         d.build_image "/vagrant/postgres", args: "-t local/postgres"
         d.run "vault", 
