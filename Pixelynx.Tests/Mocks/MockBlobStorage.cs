@@ -14,7 +14,7 @@ namespace Pixelynx.Tests.Mocks
             objects = new List<BlobObject>();
         }
 
-        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "")
+        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "", bool signUrls = false)
         {
             return await Task.Run(() => objects.Where(x => directory == "" || x.Key.StartsWith(directory)));
         }

@@ -33,7 +33,8 @@ namespace Pixelynx.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAsset([FromQuery] Guid id)
         {
-            return Ok(await this.unitOfWork.AssetRepository.GetAssetById(id));
+            var asset = await this.unitOfWork.AssetRepository.GetAssetById(id, true);
+            return Ok(asset);
         }
 
         [HttpPost, Route("examine")]

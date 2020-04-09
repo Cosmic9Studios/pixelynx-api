@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,5 +26,10 @@ namespace Pixelynx.Core.Helpers
                 .Unwrap()
                 .GetAwaiter()
                 .GetResult();
+        
+        public static async Task<IEnumerable<T>> WhenAll<T>(this IEnumerable<Task<T>> tasks)
+        {
+            return await Task.WhenAll(tasks);
+        }
     }
 }

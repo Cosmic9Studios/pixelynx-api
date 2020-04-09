@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Google.Cloud.Storage.V1;
 using System.IO;
+using Pixelynx.Core.Helpers;
 
 namespace Pixelynx.Data.BlobStorage
 {
@@ -26,13 +27,17 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Public methods.
-        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "")
+        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "", bool signUrls = false)
         {
-            return await Task.Run(() => client.ListObjects(bucket, directory).Select(x => new BlobObject
+            return await Task.Run(() => client.ListObjects(bucket, directory).Select(async x => 
             {
-                Key = x.Name,
-                Uri = urlSigner.Sign(bucket, x.Name, TimeSpan.FromHours(1), HttpMethod.Get)
-            }));
+                var url = signUrls ? await urlSigner.SignAsync(bucket, x.Name, TimeSpan.FromSeconds(15), HttpMethod.Get) : x.MediaLink;
+                return new BlobObject
+                {
+                    Key = x.Name,
+                    Uri = url
+                };
+            }).WhenAll());
         }
 
         public async Task<bool> UploadFileToBucket(string bucket, string directory, string fileName, byte[] fileContent)
