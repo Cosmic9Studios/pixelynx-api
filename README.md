@@ -28,8 +28,7 @@ Run `vagrant up` to start the Vagrant VM
 ### MinIO
 
 1. Navigate to http://localhost:9000 to access MinIO. This is what you'll be using for asset storage for development. The credentials are: `access_key` and `secret_key`.
-2. Once logged in create a bucket named `c9s-assetstore` and inside there create a folder named `robot`.
-3. Inside the robot folder add a `.glb` file and any image (the name of the files don't matter)
+2. Once logged in create a bucket named `c9s-assetstore` and another bucket named `c9s-mediastore`
 
 ### Vault
 
