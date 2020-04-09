@@ -28,11 +28,12 @@ namespace Pixelynx.Data.BlobStorage
             };
 
             client = new AmazonS3Client(accessKey, secretKey, config);
+
         }
         #endregion
 
         #region Public methods.
-        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "")
+        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "", bool signUrls = false)
         {
             var objectList = new List<BlobObject>();
             var listObjectsResponse = await client.ListObjectsAsync(bucket, directory);
@@ -42,13 +43,13 @@ namespace Pixelynx.Data.BlobStorage
                 objectList.Add(new BlobObject
                 {
                     Key = obj.Key,
-                    Uri = client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest
+                    Uri = signUrls ? client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest
                     {
                         BucketName = bucket,
                         Key = obj.Key,
                         Expires = DateTime.Now.AddMinutes(5),
                         Protocol = Protocol.HTTP
-                    })
+                    }) : $"{client.Config.ServiceURL}/{bucket}/{obj.Key}"
                 });
             }
 
