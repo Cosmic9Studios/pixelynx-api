@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Pixelynx.Core;
 using Pixelynx.Core.Helpers;
 using Pixelynx.Data.BlobStorage;
@@ -18,7 +17,8 @@ namespace Pixelynx.Data.Repositories
         #region Fields.
         private IDbContextFactory dbContextFactory;
         private IBlobStorage blobStorage;
-        private string bucketName;
+        private string assetBucketName;
+        private string mediaBucketName;
         private long defaultAssetPrice;
         #endregion
 
@@ -27,7 +27,8 @@ namespace Pixelynx.Data.Repositories
         {
             this.dbContextFactory = dbContextFactory;
             this.blobStorage = blobStorage;
-            this.bucketName = storageSettings.BucketName;
+            this.assetBucketName = storageSettings.AssetBucketName;
+            this.mediaBucketName = storageSettings.MediaBucketName;
             this.defaultAssetPrice = storageSettings.DefaultAssetPrice;
         }
         #endregion
@@ -38,10 +39,10 @@ namespace Pixelynx.Data.Repositories
             using (var context = dbContextFactory.Create())
             {
                 var storageId = Guid.NewGuid();
-                await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "asset.glb", asset.RawData); 
+                await blobStorage.UploadFileToBucket(assetBucketName, storageId.ToString(), "asset.glb", asset.RawData); 
                 if (asset.Thumbnail != null)
                 {
-                    await blobStorage.UploadFileToBucket(bucketName, storageId.ToString(), "thumbnail.png", asset.Thumbnail.RawData);
+                    await blobStorage.UploadFileToBucket(mediaBucketName, storageId.ToString(), "thumbnail.png", asset.Thumbnail.RawData);
                 }
 
                 await context.Assets.AddAsync(new AssetEntity 
@@ -49,8 +50,9 @@ namespace Pixelynx.Data.Repositories
                     Id = asset.Id, 
                     ParentId = asset.Parent?.Id, 
                     Name = asset.Name,
-                    StorageBucket = bucketName,
+                    StorageBucket = assetBucketName,
                     StorageId = storageId,
+                    MediaStorageBucket = mediaBucketName,
                     AssetType = (int)asset.Type, 
                     FileHash = asset.RawData.GenerateHash(),
                     Price = defaultAssetPrice
@@ -62,15 +64,15 @@ namespace Pixelynx.Data.Repositories
         #endregion
 
         #region Query Methods.
-        public async Task<List<Asset>> GetAllAssets()
+        public async Task<IEnumerable<Asset>> GetAllAssets()
         {
             using (var context = dbContextFactory.Create())
             {
                 var allAssets = await context.Assets.Include(x => x.Parent).ToListAsync();
-                return allAssets.Select(x =>
+                return await allAssets.Select(async x =>
                 {
-                    return ToAsset(x);
-                }).ToList();
+                    return await ToAsset(x);
+                }).WhenAll();
             }
         }
 
@@ -78,37 +80,21 @@ namespace Pixelynx.Data.Repositories
         {
             using (var context = dbContextFactory.Create())
             {
-                return (await context.Assets.Include(x => x.Parent)
+                return await (await context.Assets.Include(x => x.Parent)
                     .Where(x => parentId == Guid.Empty || x.ParentId == parentId)
                     .Where(x => string.IsNullOrWhiteSpace(filter) || EF.Functions.ILike(x.Name, $"%{filter}%"))
                     .Where(x => string.IsNullOrWhiteSpace(assetType) || Convert.ToInt32(Enum.Parse<Core.AssetType>(assetType)) == x.AssetType)
                     .ToListAsync())
-                    .Select(ToAsset);
+                    .Select(x => ToAsset(x))
+                    .WhenAll();
             }
         }
 
-        public async Task<IEnumerable<Asset>> GetAssetsById(Guid[] ids)
+        public async Task<Asset> GetAssetById(Guid id, bool signUrls = false)
         {
             using (var context = dbContextFactory.Create())
             {
-                return (await context.Assets.Include(x => x.Parent).Where(x => ids.Any(y => y == x.Id)).ToListAsync()).Select(x => ToAsset(x));
-            }
-        }
-
-        public async Task<Asset> GetAssetById(Guid id)
-        {
-            using (var context = dbContextFactory.Create())
-            {
-                return ToAsset(await context.Assets.Include(x => x.Parent).FirstAsync(x => x.Id == id));
-            }
-        }
-
-        public async Task<IEnumerable<Asset>> GetAssetsByType(AssetType assetType)
-        {
-            using (var context = dbContextFactory.Create())
-            {
-                int type = (int)assetType;
-                return (await context.Assets.Include(x => x.Parent).Where(x => x.AssetType == type).ToListAsync()).Select(ToAsset);
+                return await ToAsset(await context.Assets.Include(x => x.Parent).FirstAsync(x => x.Id == id), signUrls);
             }
         }
 
@@ -117,7 +103,7 @@ namespace Pixelynx.Data.Repositories
             using (var context = dbContextFactory.Create())
             {
                 var entity = await context.Assets.Include(x => x.Parent).Where(x => x.FileHash == hash).FirstOrDefaultAsync();
-                return entity == null ? null : ToAsset(entity);
+                return entity == null ? null : await ToAsset(entity);
             }
         }
 
@@ -141,11 +127,12 @@ namespace Pixelynx.Data.Repositories
         #endregion
 
         #region Private Methods
-        private Asset ToAsset(AssetEntity entity)
+        private async Task<Asset> ToAsset(AssetEntity entity, bool signUrls = false)
         {
-            var blobs = AsyncHelper.RunSync(() => blobStorage.ListObjects(entity.StorageBucket, entity.StorageId.ToString()));
-            var asset = blobs.First(x => x.Key.Contains("asset"));
-            var thumbnail = blobs.FirstOrDefault(x => x.Key.Contains("thumbnail"));
+            var asset = (await blobStorage.ListObjects(entity.StorageBucket, entity.StorageId.ToString(), signUrls))
+                .First(x => x.Key.Contains("asset"));
+            var thumbnail = (await blobStorage.ListObjects(entity.MediaStorageBucket, entity.StorageId.ToString()))
+                .FirstOrDefault(x => x.Key.Contains("thumbnail"));
 
             var domainModel = new Asset(entity.Name, (AssetType) entity.AssetType, asset.Uri, entity.Id);
             if (thumbnail != null)
@@ -155,7 +142,7 @@ namespace Pixelynx.Data.Repositories
 
             if (entity.ParentId != null)
             {
-                domainModel.Parent = ToAsset(entity.Parent);
+                domainModel.Parent = await ToAsset(entity.Parent);
             }
 
             return domainModel;
