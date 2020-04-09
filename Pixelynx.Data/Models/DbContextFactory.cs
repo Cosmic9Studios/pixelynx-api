@@ -16,12 +16,11 @@ namespace Pixelynx.Data.Models
         {
             this.vaultService = vaultService;
             this.connectionString = connectionString;
+            this.pollutedConnectionString = GetConnectionString();
+
             var timer = new System.Threading.Timer((e) =>
             {
-                var db = AsyncHelper.RunSync(() => vaultService.GetDbCredentials());
-                pollutedConnectionString = connectionString
-                    .Replace("{Db.UserName}", db.Key)
-                    .Replace("{Db.Password}", db.Value);
+                pollutedConnectionString = GetConnectionString();
             }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
         }
 
@@ -31,6 +30,14 @@ namespace Pixelynx.Data.Models
                 .UseNpgsql(pollutedConnectionString).Options;
 
             return new PixelynxContext(options);
+        }
+
+        private string GetConnectionString()
+        {
+            var db = AsyncHelper.RunSync(() => vaultService.GetDbCredentials());
+            return connectionString
+                .Replace("{Db.UserName}", db.Key)
+                .Replace("{Db.Password}", db.Value);
         }
     }
 }
