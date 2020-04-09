@@ -31,7 +31,7 @@ namespace Pixelynx.Data.BlobStorage
         {
             return await Task.Run(() => client.ListObjects(bucket, directory).Select(async x => 
             {
-                var url = signUrls ? await urlSigner.SignAsync(bucket, x.Name, TimeSpan.FromHours(1), HttpMethod.Get) : x.MediaLink;
+                var url = signUrls ? await urlSigner.SignAsync(bucket, x.Name, TimeSpan.FromSeconds(15), HttpMethod.Get) : x.MediaLink;
                 return new BlobObject
                 {
                     Key = x.Name,
