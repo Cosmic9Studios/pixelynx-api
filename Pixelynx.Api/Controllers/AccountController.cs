@@ -48,6 +48,11 @@ namespace Pixelynx.Api.Controllers
         public async Task<ActionResult<LoginResponse>> GetUserData()
         {
             var email = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            if (email == null)
+            {
+                return BadRequest();
+            }
+            
             var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
