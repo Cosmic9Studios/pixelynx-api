@@ -36,7 +36,6 @@ using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using System.Collections.Generic;
 using C9S.Configuration.HashicorpVault.Helpers;
-using Pixelynx.Api.Filters;
 
 namespace Pixelynx.Api
 {
