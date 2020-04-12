@@ -47,7 +47,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments());
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments(), default, default);
 
             result.Should().HaveCount(2);
         }
@@ -56,7 +56,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldOnlyReturnAssetsThatContainFilter()
         {
             var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments { Filter = "robot" });
+            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments { Filter = "robot" }, default, default);
 
             result.Should().HaveCount(1);
         }

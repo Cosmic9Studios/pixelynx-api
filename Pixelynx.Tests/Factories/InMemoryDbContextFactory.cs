@@ -19,9 +19,9 @@ namespace Pixelynx.Tests.Factories
         }
         public PixelynxContext Create()
         {       
-            var context = new PixelynxContext(options);
+            var context = new PixelynxContext(options, null);
 
-            return new PixelynxContext(options);
+            return new PixelynxContext(options, null);
         }
     }
 }

@@ -16,11 +16,11 @@ namespace Pixelynx.Tests.Factories
                 .UseSqlite(connection)
                 .Options;
             
-            var context = new PixelynxContext(options);
+            var context = new PixelynxContext(options, null);
             context.Database.OpenConnection();
             context.Database.EnsureCreated();
 
-            return new PixelynxContext(options);
+            return new PixelynxContext(options, null);
         }
     }
 }
