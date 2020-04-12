@@ -20,7 +20,7 @@ namespace Pixelynx.Api.Types
         {
             descriptor.Field(x => x.Hello()).Type<NonNullType<StringType>>();
             descriptor.Field(x => x.Me(default)).Authorize();
-            descriptor.Field(x => x.GetAssets(default, default, default));
+            descriptor.Field(x => x.GetAssets(default, default, default, default, default));
         }
     }
     
@@ -40,9 +40,11 @@ namespace Pixelynx.Api.Types
         public async Task<List<Asset>> GetAssets(
             [Service]IBlobStorage blobStorage,
             [Service]IOptions<StorageSettings> storageSettings,
-            AssetArguments args)
+            AssetArguments args, int? offset, int? limit)
         {
-                var assets = await unitOfWork.AssetRepository.FindAssets(args.Filter, args.Type, Guid.TryParse(args.ParentId, out var guid) ? guid : Guid.Empty); 
+                var assets = await unitOfWork.AssetRepository.FindAssets(
+                    args.Filter, args.Type, Guid.TryParse(args.ParentId, out var guid) ? guid : Guid.Empty, offset, limit);
+
                 if (args.Random.Value) 
                 {
                     Random rand = new Random();

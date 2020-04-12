@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Pixelynx.Core.Helpers;
 using Pixelynx.Data.Interfaces;
 
@@ -11,8 +12,9 @@ namespace Pixelynx.Data.Models
         private string connectionString;
         private string pollutedConnectionString;
         private IVaultService vaultService;
+        private ILoggerFactory loggerFactory;
 
-        public DbContextFactory(string connectionString, IVaultService vaultService) 
+        public DbContextFactory(string connectionString, IVaultService vaultService, ILoggerFactory loggerFactory) 
         {
             this.vaultService = vaultService;
             this.connectionString = connectionString;
@@ -22,6 +24,8 @@ namespace Pixelynx.Data.Models
             {
                 pollutedConnectionString = GetConnectionString();
             }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+
+            this.loggerFactory = loggerFactory;
         }
 
         public PixelynxContext Create()
@@ -29,7 +33,7 @@ namespace Pixelynx.Data.Models
             var options = new DbContextOptionsBuilder<PixelynxContext>()
                 .UseNpgsql(pollutedConnectionString).Options;
 
-            return new PixelynxContext(options);
+            return new PixelynxContext(options, loggerFactory);
         }
 
         private string GetConnectionString()

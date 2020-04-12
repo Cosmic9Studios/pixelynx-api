@@ -76,7 +76,7 @@ namespace Pixelynx.Data.Repositories
             }
         }
 
-        public async Task<IEnumerable<Asset>> FindAssets(string filter, string assetType, Guid? parentId)
+        public async Task<IEnumerable<Asset>> FindAssets(string filter, string assetType, Guid? parentId, int? offset, int? limit)
         {
             using (var context = dbContextFactory.Create())
             {
@@ -84,6 +84,8 @@ namespace Pixelynx.Data.Repositories
                     .Where(x => parentId == Guid.Empty || x.ParentId == parentId)
                     .Where(x => string.IsNullOrWhiteSpace(filter) || EF.Functions.ILike(x.Name, $"%{filter}%"))
                     .Where(x => string.IsNullOrWhiteSpace(assetType) || Convert.ToInt32(Enum.Parse<Core.AssetType>(assetType)) == x.AssetType)
+                    .Skip(offset.HasValue ? offset.Value : 0)
+                    .Take(limit.HasValue ? limit.Value : Int32.MaxValue)
                     .ToListAsync())
                     .Select(x => ToAsset(x))
                     .WhenAll();

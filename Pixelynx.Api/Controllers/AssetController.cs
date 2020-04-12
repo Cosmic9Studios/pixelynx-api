@@ -33,6 +33,10 @@ namespace Pixelynx.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAsset([FromQuery] Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Missing id");
+            }
             var asset = await this.unitOfWork.AssetRepository.GetAssetById(id, true);
             return Ok(asset);
         }

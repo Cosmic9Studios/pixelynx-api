@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Models;
 
@@ -8,14 +10,32 @@ namespace Pixelynx.Data
 {
     public class PixelynxContext : IdentityDbContext<UserEntity, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
     {
+        #region Fields. 
+        private ILoggerFactory loggerFactory;
+        #endregion
+
         #region Constructors.
         /// <summary>
         /// Initializes a new instance of the <see cref="PixelynxContext" /> class.
         /// </summary>
-        public PixelynxContext(DbContextOptions<PixelynxContext> options) : base(options)
+        public PixelynxContext(DbContextOptions<PixelynxContext> options, ILoggerFactory loggerFactory) : base(options)
         {
+            this.loggerFactory =  loggerFactory;
         }
         #endregion
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)  
+        {
+            // Allow null if you are using an IDesignTimeDbContextFactory
+            if (loggerFactory != null)
+            { 
+                if (Debugger.IsAttached)
+                {
+                    // Probably shouldn't log sql statements in production
+                    optionsBuilder.UseLoggerFactory(this.loggerFactory); 
+                }
+            }
+        } 
 
         protected override void OnModelCreating( ModelBuilder builder ) 
         {

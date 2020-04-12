@@ -57,6 +57,8 @@ namespace Pixelynx.Api
             var connectionString = Configuration.GetConnectionString("Pixelynx");
 
             services.AddLogging(configure => configure.AddConsole());
+            var serviceProvider = services.BuildServiceProvider();
+
             services.AddCors();
             services.AddControllers();
 
@@ -95,11 +97,13 @@ namespace Pixelynx.Api
             var dbCreds = AsyncHelper.RunSync(() => vaultClient.V1.Secrets.Database.GetCredentialsAsync(roleName));
 
             StripeConfiguration.ApiKey = AsyncHelper.RunSync(vaultService.GetAuthSecrets).StripeSecretKey;
+            
+            var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
 
             // Services
             services.AddSingleton<IVaultClient>(vaultClient);
             services.AddSingleton<IVaultService>(vaultService);
-            services.AddSingleton<IDbContextFactory, DbContextFactory>(options => new DbContextFactory(connectionString, vaultService));
+            services.AddSingleton<IDbContextFactory, DbContextFactory>(options => new DbContextFactory(connectionString, vaultService, loggerFactory));
             services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString
                     .Replace("{Db.UserName}", dbCreds.Data.Username)
                     .Replace("{Db.Password}", dbCreds.Data.Password)
