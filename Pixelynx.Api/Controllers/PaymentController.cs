@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using C9S.Configuration.HashicorpVault.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
+using Pixelynx.Api.Settings;
 using Pixelynx.Data.Models;
 using Stripe;
 
@@ -20,6 +22,12 @@ namespace Pixelynx.Api.Controllers
         public PaymentController(UnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork;
+        }
+
+        [Route("token"), HttpGet, AllowAnonymous]
+        public IActionResult GetStripeToken([FromServices]IOptions<StripeSettings> stripeSettings)
+        {
+            return Ok(stripeSettings.Value.PublishKey);
         }
 
         [Route("wallet/cards"), HttpGet]

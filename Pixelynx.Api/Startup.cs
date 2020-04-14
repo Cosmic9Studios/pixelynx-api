@@ -71,6 +71,7 @@ namespace Pixelynx.Api
             // IOptions
             services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
+            services.Configure<StripeSettings>(Configuration.GetSection("Stripe"));
 
             IAuthMethodInfo authMethod = null;
 
