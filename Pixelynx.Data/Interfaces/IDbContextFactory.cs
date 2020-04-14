@@ -4,6 +4,9 @@ namespace Pixelynx.Data.Interfaces
 {
     public interface IDbContextFactory
     {
-        PixelynxContext Create();
+        PixelynxContext CreateAdmin();
+        PixelynxContext CreateRead();
+        PixelynxContext CreateWrite();
+        PixelynxContext CreateReadWrite();
     }
 }

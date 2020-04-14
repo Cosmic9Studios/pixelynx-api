@@ -17,10 +17,28 @@ namespace Pixelynx.Tests.Factories
                 .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
         }
-        public PixelynxContext Create()
-        {       
-            var context = new PixelynxContext(options, null);
 
+        public PixelynxContext CreateAdmin()
+        {
+            var context = new PixelynxContext(options, null);
+            return new PixelynxContext(options, null);
+        }
+
+        public PixelynxContext CreateRead()
+        {
+            var context = new PixelynxContext(options, null);
+            return new PixelynxContext(options, null);
+        }
+
+        public PixelynxContext CreateReadWrite()
+        {
+            var context = new PixelynxContext(options, null);
+            return new PixelynxContext(options, null);
+        }
+
+        public PixelynxContext CreateWrite()
+        {
+            var context = new PixelynxContext(options, null);
             return new PixelynxContext(options, null);
         }
     }

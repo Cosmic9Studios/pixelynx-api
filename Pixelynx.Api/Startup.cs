@@ -36,6 +36,8 @@ using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using System.Collections.Generic;
 using C9S.Configuration.HashicorpVault.Helpers;
+using System.Diagnostics;
+using Pixelynx.Api.Filters;
 
 namespace Pixelynx.Api
 {
@@ -60,14 +62,17 @@ namespace Pixelynx.Api
             var serviceProvider = services.BuildServiceProvider();
 
             services.AddCors();
-            services.AddControllers();
+            services.AddControllers(options => {
+                if (Debugger.IsAttached) {
+                    options.Filters.Add(typeof(ApiFilterAttribute));
+                }
+            }); 
 
             // IOptions
             services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
 
             IAuthMethodInfo authMethod = null;
-            var roleName = "";
 
             // Environment specific services
             if (HostingEnvironment.EnvironmentName == "Development")
@@ -76,8 +81,6 @@ namespace Pixelynx.Api
                 Configuration.GetSection("BlobStorage").Bind(blobSettings);    
     
                 services.AddSingleton<IBlobStorage>(new AmazonS3(blobSettings.Address, blobSettings.AccessKey, blobSettings.SecretKey));
-
-                roleName = "admin";
                 authMethod = new TokenAuthMethodInfo("token");
             }
             else
@@ -85,29 +88,26 @@ namespace Pixelynx.Api
                 var urlSigner = AsyncHelper.RunSync(GCPHelper.GetUrlSigner);
                 services.AddSingleton<UrlSigner>(urlSigner);
                 services.AddSingleton<IBlobStorage>(new GCStorage(urlSigner));
-
-                roleName = "my-iam-role";
-                authMethod = new GoogleCloudAuthMethodInfo(roleName, AsyncHelper.RunSync(GCPHelper.GetJwt));
+                authMethod = new GoogleCloudAuthMethodInfo("my-iam-role", AsyncHelper.RunSync(GCPHelper.GetJwt));
             }
 
             var address = Configuration.GetSection("Vault:Address").Get<string>();
             var vaultClientSettings = new VaultClientSettings(address, authMethod);
             var vaultClient = new VaultClient(vaultClientSettings);
-            var vaultService = new VaultService(vaultClient, roleName);
-            var dbCreds = AsyncHelper.RunSync(() => vaultClient.V1.Secrets.Database.GetCredentialsAsync(roleName));
+            var vaultService = new VaultService(vaultClient);
 
             StripeConfiguration.ApiKey = AsyncHelper.RunSync(vaultService.GetAuthSecrets).StripeSecretKey;
             
             var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+            var dbContextFactory = new DbContextFactory(connectionString, vaultService, loggerFactory);
+            var context = dbContextFactory.CreateAdmin();
+            context.Database.Migrate();
 
             // Services
             services.AddSingleton<IVaultClient>(vaultClient);
             services.AddSingleton<IVaultService>(vaultService);
-            services.AddSingleton<IDbContextFactory, DbContextFactory>(options => new DbContextFactory(connectionString, vaultService, loggerFactory));
-            services.AddDbContext<PixelynxContext>(options => options.UseNpgsql(connectionString
-                    .Replace("{Db.UserName}", dbCreds.Data.Username)
-                    .Replace("{Db.Password}", dbCreds.Data.Password)
-            ));
+            services.AddSingleton<IDbContextFactory, DbContextFactory>(options => dbContextFactory);
+            services.AddTransient<PixelynxContext>(options => dbContextFactory.CreateReadWrite());
             services.AddSingleton<UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();
@@ -184,10 +184,8 @@ namespace Pixelynx.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, PixelynxContext context)
+        public void Configure(IApplicationBuilder app)
         {
-            context.Database.Migrate();
-
             if (HostingEnvironment.EnvironmentName == "Development")
             {
                 app.UseDeveloperExceptionPage();

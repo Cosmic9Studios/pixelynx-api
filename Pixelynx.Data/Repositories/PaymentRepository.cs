@@ -24,7 +24,7 @@ namespace Pixelynx.Data.Repositories
         #region Queries.
         public async Task<string> GetCustomerId(Guid userId)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 return (await context.PaymentDetails.FirstAsync(x => x.UserId == userId)).CustomerId;
             }
@@ -32,7 +32,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<string> GetDefaultPaymentId(Guid userId)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 return (await context.PaymentDetails.FirstAsync(x => x.UserId == userId)).DefaultPaymentMethodId;
             }
@@ -42,7 +42,7 @@ namespace Pixelynx.Data.Repositories
         #region Mutations.
         public async Task SetDefaultPaymentId(Guid userId, string paymentId)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateReadWrite())
             {
                 var paymentDetails = await context.PaymentDetails.FirstAsync(x => x.UserId == userId);
                 paymentDetails.DefaultPaymentMethodId = paymentId;
@@ -57,7 +57,7 @@ namespace Pixelynx.Data.Repositories
             var service = new CustomerService();
             var customer = service.Create(options);
 
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateWrite())
             {
                 await context.PaymentDetails.AddAsync(new PaymentDetailsEntity
                 {
@@ -71,7 +71,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task PurchaseAssets(Guid userId, List<Guid> assets, string transactionId)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateWrite())
             {
                 assets.ForEach(async asset => {
                     await context.PurchasedAssets.AddAsync(new PurchasedAssetEntity
@@ -88,7 +88,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task AddCredits(Guid userId, int credits) 
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateReadWrite())
             {
                 var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId);
                 if (user == null) 
@@ -105,7 +105,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task SpendCredits(Guid userId, int cost)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateReadWrite())
             {
                 var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId);
                 if (user == null) 
