@@ -26,7 +26,7 @@ namespace Pixelynx.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)  
         {
-            // Allow null if you are using an IDesignTimeDbContextFactory
+            // Allow null if you are using an IDesignTimeDbContextFactory OR unit tests
             if (loggerFactory != null)
             { 
                 if (Debugger.IsAttached)
@@ -37,9 +37,9 @@ namespace Pixelynx.Data
             }
         } 
 
-        protected override void OnModelCreating( ModelBuilder builder ) 
+        protected override void OnModelCreating(ModelBuilder builder) 
         {
-            base.OnModelCreating( builder );
+            base.OnModelCreating(builder);
 
             builder.Entity<UserEntity>().ToTable("Users");
             builder.Entity<Role>().ToTable("Roles");

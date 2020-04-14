@@ -10,12 +10,10 @@ namespace Pixelynx.Logic.Services
     public class VaultService : IVaultService
     {
         private IVaultClient vaultClient;
-        private string dbRoleName;
 
-        public VaultService(IVaultClient vaultClient, string dbRoleName)
+        public VaultService(IVaultClient vaultClient)
         {
             this.vaultClient = vaultClient;
-            this.dbRoleName = dbRoleName;
         }
 
         public async Task<VaultAuthSettings> GetAuthSecrets()
@@ -24,9 +22,9 @@ namespace Pixelynx.Logic.Services
             return secrets.Data.ToObject<VaultAuthSettings>();
         }
 
-        public async Task<KeyValuePair<string, string>> GetDbCredentials()
+        public async Task<KeyValuePair<string, string>> GetDbCredentials(VaultRole role)
         {
-            var dbCreds = await vaultClient.V1.Secrets.Database.GetCredentialsAsync(dbRoleName);
+            var dbCreds = await vaultClient.V1.Secrets.Database.GetCredentialsAsync(role.ToString().ToLower());
             return new KeyValuePair<string, string>(dbCreds.Data.Username, dbCreds.Data.Password);
         }
     }

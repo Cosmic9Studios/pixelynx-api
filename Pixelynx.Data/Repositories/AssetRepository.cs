@@ -36,7 +36,7 @@ namespace Pixelynx.Data.Repositories
         #region Mutation Methods.
         public async Task CreateAsset(Asset asset)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateWrite())
             {
                 var storageId = Guid.NewGuid();
                 await blobStorage.UploadFileToBucket(assetBucketName, storageId.ToString(), "asset.glb", asset.RawData); 
@@ -66,7 +66,7 @@ namespace Pixelynx.Data.Repositories
         #region Query Methods.
         public async Task<IEnumerable<Asset>> GetAllAssets()
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 var allAssets = await context.Assets.Include(x => x.Parent).ToListAsync();
                 return await allAssets.Select(async x =>
@@ -78,7 +78,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<IEnumerable<Asset>> FindAssets(string filter, string assetType, Guid? parentId, int? offset, int? limit)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 return await (await context.Assets.Include(x => x.Parent)
                     .Where(x => parentId == Guid.Empty || x.ParentId == parentId)
@@ -94,7 +94,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<Asset> GetAssetById(Guid id, bool signUrls = false)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 return await ToAsset(await context.Assets.Include(x => x.Parent).FirstAsync(x => x.Id == id), signUrls);
             }
@@ -102,7 +102,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<Asset> GetAssetByFileHash(string hash)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 var entity = await context.Assets.Include(x => x.Parent).Where(x => x.FileHash == hash).FirstOrDefaultAsync();
                 return entity == null ? null : await ToAsset(entity);
@@ -111,7 +111,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<long> GetAssetCost(Guid assetId)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 var asset = await context.Assets.FirstAsync(x => x.Id == assetId);
                 return asset.Price;
@@ -120,7 +120,7 @@ namespace Pixelynx.Data.Repositories
 
         public async Task<bool> IsOwned(Guid userId, Guid assetId)
         {
-            using (var context = dbContextFactory.Create())
+            using (var context = dbContextFactory.CreateRead())
             {
                 var asset = await context.PurchasedAssets.FirstOrDefaultAsync(x => x.UserId == userId && x.AssetId == assetId);
                 return asset != null;

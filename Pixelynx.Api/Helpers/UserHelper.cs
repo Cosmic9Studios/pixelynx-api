@@ -36,7 +36,10 @@ namespace Pixelynx.Api.Helpers
         public static string GenerateConfirmationUrl(this UserEntity user, HttpRequest request, string code, ConfirmationType confirmationType)
         {
             RequestHeaders header = request.GetTypedHeaders();
-            var baseUrl = $"{request.Scheme}://{header.Referer.Authority}";
+            var fullUri = header.Referer.AbsoluteUri;
+            var authority = header.Referer.Authority;
+
+            var baseUrl = fullUri.Substring(0, fullUri.IndexOf(authority) +  authority.Length);
             return $"{baseUrl}/account/confirm?userId={user.Id}&code={code}&type={confirmationType.ToString()}";
         }
     }
