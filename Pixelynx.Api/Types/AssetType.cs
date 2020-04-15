@@ -12,6 +12,7 @@ namespace Pixelynx.Api.Types
         public string ThumbnailUri { get; set; }
         public string Type { get; set; }
         public Guid? ParentId { get; set; }
+        public int Cost { get; set; }
     }
 
     public class AssetType : ObjectType<Asset>
@@ -24,6 +25,7 @@ namespace Pixelynx.Api.Types
             descriptor.Field(f => f.ThumbnailUri).Type<NonNullType<StringType>>();
             descriptor.Field(f => f.Type).Type<NonNullType<StringType>>();
             descriptor.Field(f => f.ParentId).Type<NonNullType<StringType>>();
+            descriptor.Field(f => f.Cost).Type<NonNullType<IntType>>();
         }
     }
 }

@@ -137,6 +137,7 @@ namespace Pixelynx.Data.Repositories
                 .FirstOrDefault(x => x.Key.Contains("thumbnail"));
 
             var domainModel = new Asset(entity.Name, (AssetType) entity.AssetType, asset.Uri, entity.Id);
+            domainModel.Cost = (int)entity.Price;
             if (thumbnail != null)
             {
                 domainModel.Thumbnail = new Thumbnail(thumbnail.Uri);
