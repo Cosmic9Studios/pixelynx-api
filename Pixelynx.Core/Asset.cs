@@ -34,7 +34,7 @@ namespace Pixelynx.Core
         public string Name { get; set; }
         public Thumbnail Thumbnail { get; set; }
         public AssetType Type { get; }
-        
+        public int Cost { get; set; }
 
         public string Uri { get; } = string.Empty;
         public byte[] RawData { get; private set; } = new byte[0];

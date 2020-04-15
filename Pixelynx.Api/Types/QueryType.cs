@@ -61,7 +61,8 @@ namespace Pixelynx.Api.Types
                         ThumbnailUri = x.Thumbnail?.Uri,
                         Name = x.Name,
                         Type = x.Type.ToString(),
-                        ParentId = x.Parent?.Id
+                        ParentId = x.Parent?.Id,
+                        Cost = x.Cost
                     };
                 }).ToList();
         }
