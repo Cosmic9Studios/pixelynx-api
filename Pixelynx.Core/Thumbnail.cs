@@ -11,13 +11,15 @@ namespace Pixelynx.Core
             Uri = uri;
         }
 
-        public Thumbnail(byte[] rawData)
+        public Thumbnail(byte[] rawData, string filename)
         {
             RawData = rawData;
+            FileName = filename;
         }
 
         public string Uri { get; set; } = string.Empty;
         public byte[] RawData { get; set; } = new byte[0];
+        public string FileName { get; }
 
         public byte[] GetRawData()
         {

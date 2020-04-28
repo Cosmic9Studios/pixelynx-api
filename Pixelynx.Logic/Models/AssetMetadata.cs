@@ -8,8 +8,9 @@ namespace Pixelynx.Logic.Model
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public decimal Price { get; set; }
+        public int Price { get; set; }
         public List<string> Tags { get; set; }
+        public string Thumbnail { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         public Core.AssetType Type { get; set; }

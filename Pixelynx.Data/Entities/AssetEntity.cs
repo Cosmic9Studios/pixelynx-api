@@ -9,6 +9,7 @@ namespace Pixelynx.Data.Entities
         public Guid? ParentId { get; set; }
         public Guid StorageId { get; set; }
         public string Name { get; set; }
+        public string Description { get; set; }
         public string StorageBucket { get; set; }
         public string MediaStorageBucket { get; set; }
         public int AssetType { get; set; }

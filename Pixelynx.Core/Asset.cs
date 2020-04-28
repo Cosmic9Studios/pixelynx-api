@@ -32,6 +32,7 @@ namespace Pixelynx.Core
         public Asset Parent { get; set; }
         public Guid Id { get; }
         public string Name { get; set; }
+        public string Description { get; set; }
         public Thumbnail Thumbnail { get; set; }
         public AssetType Type { get; }
         public int Cost { get; set; }
