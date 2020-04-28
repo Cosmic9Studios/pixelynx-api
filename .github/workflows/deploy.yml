@@ -21,7 +21,7 @@ jobs:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
       run: |
-        cd deployment
+        cd _deployment
         gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./staging/pixelynx-staging.json.gpg
         ./deploy.sh Staging
   
@@ -44,6 +44,6 @@ jobs:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
       run: |
-        cd deployment
+        cd _deployment
         gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./production/pixelynx.json.gpg
         ./deploy.sh Production

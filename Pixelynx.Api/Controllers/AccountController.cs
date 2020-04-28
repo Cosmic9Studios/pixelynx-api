@@ -44,7 +44,7 @@ namespace Pixelynx.Api.Controllers
         #endregion
 
         #region Public Methods
-        [HttpGet, Route("me")]
+        [HttpGet, Route("me"), AllowAnonymous]
         public async Task<ActionResult<LoginResponse>> GetUserData()
         {
             var email = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
@@ -80,12 +80,13 @@ namespace Pixelynx.Api.Controllers
             logger.LogInformation($"Attempting login for {request.Email}");
 
             var user = await userManager.FindByEmailAsync(request.Email);
-            if (!user.EmailConfirmed) 
+            if (user == null || !user.EmailConfirmed) 
             {
                 return Unauthorized();
             }
 
             var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
 
             if (result.Succeeded)
             {

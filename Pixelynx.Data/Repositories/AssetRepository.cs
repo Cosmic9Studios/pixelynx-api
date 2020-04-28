@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,6 @@ namespace Pixelynx.Data.Repositories
         private IBlobStorage blobStorage;
         private string assetBucketName;
         private string mediaBucketName;
-        private long defaultAssetPrice;
         #endregion
 
         #region Constructors.
@@ -29,7 +29,6 @@ namespace Pixelynx.Data.Repositories
             this.blobStorage = blobStorage;
             this.assetBucketName = storageSettings.AssetBucketName;
             this.mediaBucketName = storageSettings.MediaBucketName;
-            this.defaultAssetPrice = storageSettings.DefaultAssetPrice;
         }
         #endregion
 
@@ -42,7 +41,8 @@ namespace Pixelynx.Data.Repositories
                 await blobStorage.UploadFileToBucket(assetBucketName, storageId.ToString(), "asset.glb", asset.RawData); 
                 if (asset.Thumbnail != null)
                 {
-                    await blobStorage.UploadFileToBucket(mediaBucketName, storageId.ToString(), "thumbnail.png", asset.Thumbnail.RawData);
+                    var name = $"thumbnail{Path.GetExtension(asset.Thumbnail.FileName)}";
+                    await blobStorage.UploadFileToBucket(mediaBucketName, storageId.ToString(), name, asset.Thumbnail.RawData);
                 }
 
                 await context.Assets.AddAsync(new AssetEntity 
@@ -50,12 +50,13 @@ namespace Pixelynx.Data.Repositories
                     Id = asset.Id, 
                     ParentId = asset.Parent?.Id, 
                     Name = asset.Name,
+                    Description = asset.Description,
                     StorageBucket = assetBucketName,
                     StorageId = storageId,
                     MediaStorageBucket = mediaBucketName,
                     AssetType = (int)asset.Type, 
                     FileHash = asset.RawData.GenerateHash(),
-                    Price = defaultAssetPrice
+                    Price = asset.Cost
                 });
 
                 await context.SaveChangesAsync();

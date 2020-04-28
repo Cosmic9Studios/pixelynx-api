@@ -25,7 +25,9 @@ namespace Pixelynx.Logic.Services
                 foreach (var asset in assetStreams)
                 {
                     var newAsset = new Core.Asset(asset.Metadata.Name, asset.Metadata.Type, asset.DataStream.ToArray());
-                    newAsset.Thumbnail = new Core.Thumbnail(asset.ThumbnailStream.ToArray());
+                    newAsset.Thumbnail = new Core.Thumbnail(asset.ThumbnailStream.ToArray(), asset.Metadata.Thumbnail);
+                    newAsset.Cost = asset.Metadata.Price;
+                    newAsset.Description = asset.Metadata.Description;
                     if (parent != null)
                     {
                         newAsset.Parent = parent;
