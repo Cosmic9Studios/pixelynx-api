@@ -4,6 +4,5 @@ namespace Pixelynx.Data.Settings
     {
         public string AssetBucketName { get; set; }
         public string MediaBucketName { get; set; }
-        public long DefaultAssetPrice { get; set; }
     }
 }
