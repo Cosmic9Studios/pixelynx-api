@@ -5,7 +5,7 @@ terraform {
 }
 
 locals {
-    domain = var.app_environment != "Production" ? "staging.pixelynx.com" : "pixelynx.com"
+    domain = var.app_environment != "Production" ? "api.staging.pixelynx.com" : "api.pixelynx.com"
     project = var.app_environment != "Production" ? "pixelynx-staging" : "pixelynx"
     gsa_name = "pxl-api"
     ksa_name = "pxl-api"
