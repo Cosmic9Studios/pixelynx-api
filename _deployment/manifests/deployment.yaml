@@ -73,8 +73,6 @@ metadata:
         certmanager.k8s.io/acme-http01-edit-in-place: "true"
         kubernetes.io/ingress.class: nginx
         kubernetes.io/tls-acme: "true"
-        nginx.ingress.kubernetes.io/rewrite-target: /$2
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/proxy-body-size: "100m"
 spec:
     tls:
@@ -85,7 +83,7 @@ spec:
     - host: ${domain}
       http:
         paths:
-        - path: /(.*) 
+        - path: /
           backend:
             serviceName: pxl-api-svc
             servicePort: 5000

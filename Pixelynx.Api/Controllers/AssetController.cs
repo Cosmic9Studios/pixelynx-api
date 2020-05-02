@@ -35,7 +35,7 @@ namespace Pixelynx.Api.Controllers
             this.logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet, AllowAnonymous]
         public async Task<IActionResult> GetAsset([FromQuery] Guid id)
         {
             if (id == Guid.Empty)
