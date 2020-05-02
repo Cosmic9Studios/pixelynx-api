@@ -85,7 +85,7 @@ spec:
     - host: ${domain}
       http:
         paths:
-        - path: /api(/|$)(.*) 
+        - path: /(.*) 
           backend:
             serviceName: pxl-api-svc
             servicePort: 5000

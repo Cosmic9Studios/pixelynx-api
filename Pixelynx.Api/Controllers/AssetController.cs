@@ -13,6 +13,11 @@ using System.Linq;
 using Pixelynx.Logic.Services;
 using Pixelynx.Logic.Model;
 using Newtonsoft.Json;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using Pixelynx.Data.Entities;
+using Pixelynx.Api.Responses;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Pixelynx.Api.Controllers
 {
@@ -112,6 +117,53 @@ namespace Pixelynx.Api.Controllers
             }
             
             return BadRequest();
+        }
+
+        [HttpPost, Route("download"), AllowAnonymous]
+        public async Task<IActionResult> DownloadAssets([FromBody] DownloadRequest request, [FromServices] UserManager<UserEntity> userManager)
+        {
+            var models = new List<Core.Asset>();
+            var animations = new List<Core.Asset>();
+            var email = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            UserEntity user = null;
+            if (email != null)
+            {
+                user = await userManager.FindByEmailAsync(email);
+            }
+
+            foreach(var assetId in request.Assets)  
+            {
+                var asset = await unitOfWork.AssetRepository.GetAssetById(assetId, true);
+                if (asset != null)
+                {
+                    if (asset.Type == Core.AssetType.Animation) 
+                    {
+                        animations.Add(asset);
+                    }
+                    else 
+                    {
+                        models.Add(asset);
+                    }
+            
+                    if (asset.Cost == 0) 
+                    {
+                        continue;
+                    }
+
+                    if (user != null)
+                    {
+                        var isOwned = await unitOfWork.AssetRepository.IsOwned(user.Id, assetId);
+                        if (isOwned) 
+                        {
+                            continue;
+                        }
+                    }
+                }
+ 
+                return BadRequest();
+            }
+
+            return Ok(new DownloadResponse { Models = models, Animations = animations, Name = models.FirstOrDefault()?.Name });
         }
     }
 }
