@@ -88,7 +88,7 @@ namespace Pixelynx.Data.Repositories
                     .Skip(offset.HasValue ? offset.Value : 0)
                     .Take(limit.HasValue ? limit.Value : Int32.MaxValue)
                     .ToListAsync())
-                    .Select(x => ToAsset(x))
+                    .Select(x => ToAsset(x, true))
                     .WhenAll();
             }
         }
