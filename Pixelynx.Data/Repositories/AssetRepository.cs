@@ -93,7 +93,7 @@ namespace Pixelynx.Data.Repositories
             }
         }
 
-        public async Task<Asset> GetAssetById(Guid id, bool signUrls = false)
+        public async Task<Asset> GetAssetById(Guid id, bool signUrls = true)
         {
             using (var context = dbContextFactory.CreateRead())
             {
@@ -130,7 +130,7 @@ namespace Pixelynx.Data.Repositories
         #endregion
 
         #region Private Methods
-        private async Task<Asset> ToAsset(AssetEntity entity, bool signUrls = false)
+        private async Task<Asset> ToAsset(AssetEntity entity, bool signUrls = true)
         {
             var asset = (await blobStorage.ListObjects(entity.StorageBucket, entity.StorageId.ToString(), signUrls))
                 .First(x => x.Key.Contains("asset"));
