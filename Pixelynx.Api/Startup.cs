@@ -38,6 +38,7 @@ using System.Collections.Generic;
 using C9S.Configuration.HashicorpVault.Helpers;
 using System.Diagnostics;
 using Pixelynx.Api.Filters;
+using Npgsql;
 
 namespace Pixelynx.Api
 {
@@ -67,6 +68,8 @@ namespace Pixelynx.Api
                     options.Filters.Add(typeof(ApiFilterAttribute));
                 }
             }); 
+
+            services.AddDataLoaderRegistry();
 
             // IOptions
             services.Configure<StorageSettings>(Configuration.GetSection("Storage"));
@@ -98,11 +101,15 @@ namespace Pixelynx.Api
             var vaultService = new VaultService(vaultClient);
 
             StripeConfiguration.ApiKey = AsyncHelper.RunSync(vaultService.GetAuthSecrets).StripeSecretKey;
-            
+
             var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
             var dbContextFactory = new DbContextFactory(connectionString, vaultService, loggerFactory);
             var context = dbContextFactory.CreateAdmin();
+            
             context.Database.Migrate();
+            // context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";");
+            // On Migration
+            // services.AddDbContext<PixelynxContext>(optitons => dbContextFactory.CreateAdmin());
 
             // Services
             services.AddSingleton<IVaultClient>(vaultClient);
@@ -173,14 +180,15 @@ namespace Pixelynx.Api
                 SchemaBuilder.New()
                     .AddServices(sp)
                     .AddAuthorizeDirectiveType()
-                    .AddQueryType<QueryType>()
-                    .Create(), 
+                    .AddQueryType<GQLQuery>()
+                    .AddMutationType<GQLMutation>()
+                    .Create()
 
-                new QueryExecutionOptions
+                /*new QueryExecutionOptions
                 {
-                    TracingPreference = TracingPreference.Always,
-                    IncludeExceptionDetails = true
-                }
+                    TracingPreference = TracingPreference.Never,
+                    IncludeExceptionDetails = false
+                } */
             );
         }
 
@@ -204,6 +212,7 @@ namespace Pixelynx.Api
             app.UseAuthorization();
             app.UseGraphQL(new QueryMiddlewareOptions { EnableSubscriptions = false });
             app.UseGraphiQL();
+            app.UsePlayground();
 
             app.UseEndpoints(endpoints =>
             {
