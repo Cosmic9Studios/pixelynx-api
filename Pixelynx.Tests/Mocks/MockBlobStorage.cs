@@ -14,6 +14,11 @@ namespace Pixelynx.Tests.Mocks
             objects = new List<BlobObject>();
         }
 
+        public Task<BlobObject> GetObject(string bucket, string objectPath, bool signUrl = false)
+        {
+            return Task.FromResult(objects.FirstOrDefault(x => x.Key == objectPath));
+        }
+
         public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "", bool signUrls = false)
         {
             return await Task.Run(() => objects.Where(x => directory == "" || x.Key.StartsWith(directory)));

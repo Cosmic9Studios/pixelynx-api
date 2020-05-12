@@ -1,11 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Threading.Tasks;
+using Pixelynx.Core;
+using Pixelynx.Data.BlobStorage;
 
 namespace Pixelynx.Data.Entities
 {
     public class AssetEntity
     {
         public Guid Id { get; set; }
+        public Guid UploaderId { get; set; }
         public Guid? ParentId { get; set; }
         public Guid StorageId { get; set; }
         public string Name { get; set; }
@@ -18,5 +24,8 @@ namespace Pixelynx.Data.Entities
 
         [ForeignKey("ParentId")]
         public AssetEntity Parent { get; set; }
+
+        [ForeignKey("UploaderId")]
+        public UserEntity Uploader { get; set; }
     }
 }
