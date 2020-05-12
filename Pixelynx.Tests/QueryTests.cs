@@ -1,14 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Options;
-using Pixelynx.Api.Arguments;
+using Microsoft.EntityFrameworkCore;
 using Pixelynx.Api.Types;
-using Pixelynx.Core;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
-using Pixelynx.Data.Models;
-using Pixelynx.Data.Settings;
 using Pixelynx.Tests.Factories;
 using Pixelynx.Tests.Mocks;
 using Xunit;
@@ -52,6 +48,8 @@ namespace Pixelynx.Tests
                 AssetType = (int) Core.AssetType.Model,
                 StorageId = Guid.Parse(storageId2)
             });
+
+            await writeContext.SaveChangesAsync();
         }
 
         public Task DisposeAsync()
@@ -63,7 +61,7 @@ namespace Pixelynx.Tests
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
             var query = new GQLQuery();
-            var result = await query.GetAssets(dbContextFactory, false, 0, 0);
+            var result = await query.GetAssets(dbContextFactory, 0, 0).ToListAsync();
 
             result.Should().HaveCount(2);
         }
