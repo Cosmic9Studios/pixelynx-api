@@ -1,8 +1,12 @@
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Pixelynx.Api.Arguments;
 using Pixelynx.Api.Types;
+using Pixelynx.Core;
+using Pixelynx.Data.Entities;
+using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
 using Pixelynx.Data.Settings;
 using Pixelynx.Tests.Factories;
@@ -13,7 +17,7 @@ namespace Pixelynx.Tests
 {
     public class QueryTests : IAsyncLifetime
     {
-        private UnitOfWork unitOfWork;
+        private IDbContextFactory dbContextFactory;
         private const string storageId1 = "fec9f5ef-0d95-4bcc-902d-e9b45766925a";
         private const string storageId2 = "fec9f5ef-0d95-4bcc-902d-e9b45766925b";
         private MockBlobStorage blobStorage;
@@ -21,7 +25,7 @@ namespace Pixelynx.Tests
         public QueryTests()
         {
             blobStorage = new MockBlobStorage();
-            unitOfWork = DbFactory.GetInMemoryDb(blobStorage);
+            dbContextFactory = new InMemoryDbContextFactory();
         }
 
         public async Task InitializeAsync()
@@ -34,8 +38,20 @@ namespace Pixelynx.Tests
             await blobStorage.UploadFileToBucket("", storageId2, "thumbnail.png", null);
             await blobStorage.UploadFileToBucket("", storageId2, "watermark.glb", null);
 
-            await unitOfWork.AssetRepository.CreateAsset(new Core.Asset("robot", Core.AssetType.Model, storageId1));
-            await unitOfWork.AssetRepository.CreateAsset(new Core.Asset("foo", Core.AssetType.Model, storageId2));
+            var writeContext = dbContextFactory.CreateWrite();
+            writeContext.Assets.Add(new AssetEntity
+            {
+                Name = "robot",
+                AssetType = (int) Core.AssetType.Model,
+                StorageId = Guid.Parse(storageId1)
+            });
+
+            writeContext.Assets.Add(new AssetEntity
+            {
+                Name = "foo",
+                AssetType = (int) Core.AssetType.Model,
+                StorageId = Guid.Parse(storageId2)
+            });
         }
 
         public Task DisposeAsync()
@@ -46,19 +62,10 @@ namespace Pixelynx.Tests
         [Fact]
         public async Task Assets_ShouldReturnAllAssetsInStorage()
         {
-            var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments(), default, default);
+            var query = new GQLQuery();
+            var result = await query.GetAssets(dbContextFactory, false, 0, 0);
 
             result.Should().HaveCount(2);
-        }
-
-        [Fact]
-        public async Task Assets_ShouldOnlyReturnAssetsThatContainFilter()
-        {
-            var query = new Query(unitOfWork);
-            var result = await query.GetAssets(blobStorage, Options.Create(new StorageSettings()), new AssetArguments { Filter = "robot" }, default, default);
-
-            result.Should().HaveCount(1);
         }
     }
 }
