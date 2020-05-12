@@ -33,11 +33,26 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Public methods.
+        public async Task<BlobObject> GetObject(string bucket, string objectPath, bool signUrl = false)
+        {
+            var obj = await client.GetObjectAsync(bucket, objectPath);
+            return new BlobObject
+            {
+                Key = objectPath,
+                Uri = signUrl ? client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest
+                {
+                    BucketName = bucket,
+                    Key = obj.Key,
+                    Expires = DateTime.Now.AddMinutes(5),
+                    Protocol = Protocol.HTTP
+                }) : $"{client.Config.ServiceURL}/{bucket}/{obj.Key}"
+            };
+        }
+
         public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "", bool signUrls = false)
         {
             var objectList = new List<BlobObject>();
             var listObjectsResponse = await client.ListObjectsAsync(bucket, directory);
-
             foreach (var obj in listObjectsResponse.S3Objects)
             {
                 objectList.Add(new BlobObject
