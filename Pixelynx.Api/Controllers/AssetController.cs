@@ -16,8 +16,7 @@ using Newtonsoft.Json;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Pixelynx.Data.Entities;
-using Pixelynx.Api.Responses;
-using Microsoft.AspNetCore.Authorization;
+using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Api.Controllers
 {
@@ -34,24 +33,15 @@ namespace Pixelynx.Api.Controllers
             this.unitOfWork = unitOfWork;
             this.logger = logger;
         }
-
-        [HttpGet, AllowAnonymous]
-        public async Task<IActionResult> GetAsset([FromQuery] Guid id)
-        {
-            if (id == Guid.Empty)
-            {
-                return BadRequest("Missing id");
-            }
-            var asset = await this.unitOfWork.AssetRepository.GetAssetById(id, true);
-            return Ok(asset);
-        }
-
+    
         [HttpPost, Route("examine")]
-        public async Task<IActionResult> Examine(
-            [FromServices]UnitOfWork unitOfWork, 
+        public IActionResult Examine(
+            [FromServices]IDbContextFactory dbContextFactory, 
             IFormCollection request)
         {
             List<IFormFile> nonDuplicates = new List<IFormFile>();
+            IQueryable<AssetEntity> assets = dbContextFactory.CreateRead().Assets;
+            var fileData = new Dictionary<string, IFormFile>();
 
             foreach (var file in request.Files.Where(x => x.FileName.EndsWith("glb")))
             {
@@ -60,19 +50,19 @@ namespace Pixelynx.Api.Controllers
                 var byteArray = ms.ToArray();
 
                 var fileHash = byteArray.GenerateHash();
-                var asset = await unitOfWork.AssetRepository.GetAssetByFileHash(fileHash);
-                if (asset == null)
-                {
-                    nonDuplicates.Add(file);
-                }
+                fileData[fileHash] = file;
+                assets = assets.Where(x => x.FileHash == fileHash);
             }
-        
-            return Ok(nonDuplicates.Select(x => Path.GetFileNameWithoutExtension(x.FileName)));
+
+            var fileNames = assets.Select(x => x.FileHash).ToList();
+            return Ok(fileData.Where(x => !fileNames.Any(filename => filename == x.Key))
+                .Select(x => Path.GetFileNameWithoutExtension(x.Value.FileName)));
         }
 
         [HttpPost, Route("upload")]
         public async Task<IActionResult> UploadAsset(
             [FromServices]UploadService uploadService,
+            [FromServices]UserManager<UserEntity> userManager,
             [FromForm] UploadRequest request)
         {
             // Model has to be the first item in the form in order to act as the parent
@@ -81,10 +71,16 @@ namespace Pixelynx.Api.Controllers
                 return BadRequest("Invalid form");
             }
 
-            Core.Asset parent = null;
-            if (!string.IsNullOrWhiteSpace(request.ParentId))
+            var email = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            if (email == null) 
             {
-                parent = await unitOfWork.AssetRepository.GetAssetById(Guid.Parse(request.ParentId));
+                return BadRequest("Must be logged in to upload");
+            }
+
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest("Must be logged in to upload"); 
             }
 
             var formFiles = request.Form.Files.GroupBy(x => x.Name);
@@ -111,59 +107,12 @@ namespace Pixelynx.Api.Controllers
                 });
             }
 
-            if(await uploadService.UploadAssets(assetData, parent))
+            if(await uploadService.UploadAssets(user, assetData, Guid.TryParse(request.ParentId, out var parentId) ? (Guid?)parentId : null))
             {
                 return Ok();
             }
             
             return BadRequest();
-        }
-
-        [HttpPost, Route("download"), AllowAnonymous]
-        public async Task<IActionResult> DownloadAssets([FromBody] DownloadRequest request, [FromServices] UserManager<UserEntity> userManager)
-        {
-            var models = new List<Core.Asset>();
-            var animations = new List<Core.Asset>();
-            var email = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            UserEntity user = null;
-            if (email != null)
-            {
-                user = await userManager.FindByEmailAsync(email);
-            }
-
-            foreach(var assetId in request.Assets)  
-            {
-                var asset = await unitOfWork.AssetRepository.GetAssetById(assetId, true);
-                if (asset != null)
-                {
-                    if (asset.Type == Core.AssetType.Animation) 
-                    {
-                        animations.Add(asset);
-                    }
-                    else 
-                    {
-                        models.Add(asset);
-                    }
-            
-                    if (asset.Cost == 0) 
-                    {
-                        continue;
-                    }
-
-                    if (user != null)
-                    {
-                        var isOwned = await unitOfWork.AssetRepository.IsOwned(user.Id, assetId);
-                        if (isOwned) 
-                        {
-                            continue;
-                        }
-                    }
-                }
- 
-                return BadRequest();
-            }
-
-            return Ok(new DownloadResponse { Models = models, Animations = animations, Name = models.FirstOrDefault()?.Name });
         }
     }
 }
