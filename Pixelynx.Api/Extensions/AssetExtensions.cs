@@ -6,7 +6,7 @@ using Pixelynx.Data.Entities;
 
 namespace Pixelynx.Api.Extensions
 {
-     public static class AssetEntityExtensions
+     public static class AssetExtensions
     {
         public static IQueryable<GQLAsset> ToGQLAsset(this IQueryable<AssetEntity> entity)
         {
@@ -19,7 +19,7 @@ namespace Pixelynx.Api.Extensions
                 UploaderId = asset.UploaderId,
                 ParentId = asset.Parent == null ? Guid.Empty : asset.Parent.Id,
                 StorageId = asset.StorageId,
-                StorageBuckets = new KeyValuePair<string, string>(asset.StorageBucket, asset.MediaStorageBucket)
+                StorageBuckets = new KeyValuePair<string, string>(asset.StorageBucket, asset.MediaStorageBucket),
             });
         }
     }

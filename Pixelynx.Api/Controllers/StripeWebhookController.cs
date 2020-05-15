@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using C9S.Configuration.HashicorpVault.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
 using Stripe;
@@ -16,14 +17,16 @@ namespace Pixelynx.Api.Controllers
         private UnitOfWork unitOfWork;
         private static string endpointSecret;
         private IVaultService vaultService;
+        private IDbContextFactory dbContextFactory;
         
-        public StripeWebhookController(UnitOfWork unitOfWork, IVaultService vaultService)
+        public StripeWebhookController(UnitOfWork unitOfWork, IVaultService vaultService, IDbContextFactory dbContextFactory)
         {
             this.unitOfWork = unitOfWork;
             this.vaultService = vaultService;
+            this.dbContextFactory = dbContextFactory;
             if (string.IsNullOrEmpty(endpointSecret)) 
             {
-                endpointSecret = AsyncHelper.RunSync(() => vaultService.GetAuthSecrets()).StripeEndpointSecret;
+                endpointSecret = AsyncHelper.RunSync(vaultService.GetAuthSecrets).StripeEndpointSecret;
             }
         }
 
@@ -41,13 +44,29 @@ namespace Pixelynx.Api.Controllers
                 {
                     var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
                     var userId = Guid.Parse(paymentIntent.Metadata["userId"]);
-                    var assets = paymentIntent.Metadata["assets"].Split(',').Select(Guid.Parse);
-                    if (!assets.Any())
-                    {
-                        return BadRequest();
-                    }
 
-                    await unitOfWork.PaymentRepository.PurchaseAssets(userId, assets.ToList(), paymentIntent.Charges.Data[0].BalanceTransactionId);
+                    var type = paymentIntent.Metadata["type"];
+                    if (type == "ASSETS")
+                    {
+                        var assets = paymentIntent.Metadata["assets"].Split(',').Select(Guid.Parse);
+                        if (!assets.Any())
+                        {
+                            return BadRequest();
+                        }
+
+                        await unitOfWork.PaymentRepository.PurchaseAssets(userId, assets.ToList(), paymentIntent.Charges.Data[0].BalanceTransactionId);
+                    }
+                    else if (type == "CREDITS")
+                    {
+                        var amount = int.Parse(paymentIntent.Metadata["amount"]);
+                        using (var context = dbContextFactory.CreateReadWrite())
+                        {
+                            var user = context.Users.FirstOrDefault(x => x.Id == userId);
+                            user.Credits += amount;
+                            context.Users.Update(user);
+                            await context.SaveChangesAsync();
+                        }
+                    }
                 }
                 else
                 {

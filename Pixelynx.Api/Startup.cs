@@ -119,6 +119,7 @@ namespace Pixelynx.Api
             services.AddSingleton<UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();
+            services.AddSingleton<IPaymentService, PaymentService>();
 
             // Order matters. This needs to be before AddAuthentication
             services.AddIdentity<UserEntity, Role>()
@@ -183,12 +184,6 @@ namespace Pixelynx.Api
                     .AddQueryType<GQLQuery>()
                     .AddMutationType<GQLMutation>()
                     .Create()
-
-                /*new QueryExecutionOptions
-                {
-                    TracingPreference = TracingPreference.Never,
-                    IncludeExceptionDetails = false
-                } */
             );
         }
 

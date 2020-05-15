@@ -27,6 +27,10 @@ namespace Pixelynx.Api.Types
                 .Take(limit.HasValue && limit.Value > 0 ? limit.Value : Int32.MaxValue)
                 .ToGQLAsset();
         
+        [UseFiltering]
+        public IQueryable<GQLUser> GetUsers([Service]IDbContextFactory context) => 
+            context.CreateRead().Users.ToGQLUser();
+        
         public string Hello() => "world";
         public string Me([Service]IHttpContextAccessor context) => $"Hello, your Id is: {context.HttpContext.User.Identity.Name}";
     }
