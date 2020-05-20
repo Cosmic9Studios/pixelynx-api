@@ -3,16 +3,7 @@ using System.Net;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using VaultSharp.V1.AuthMethods.GoogleCloud;
-using Pixelynx.Logic.Helpers;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using C9S.Configuration.HashicorpVault;
-using VaultSharp.V1.AuthMethods;
-using VaultSharp.V1.AuthMethods.Token;
-using C9S.Configuration.Variables;
-using VaultSharp;
 
 namespace Pixelynx.Api
 {

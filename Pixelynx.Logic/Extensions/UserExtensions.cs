@@ -11,11 +11,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using MoreLinq;
 using Pixelynx.Data.Entities;
-using static Pixelynx.Api.Controllers.AccountController;
+using static AuthService;
 
-namespace Pixelynx.Api.Helpers
+namespace Pixelynx.Logic.Extensions
 {
-    public static class UserHelper
+    public static class UserExtensions
     {
         public static async Task<string> GenerateToken(this UserEntity user, UserManager<UserEntity> userManager, string jwtSecret)
         {

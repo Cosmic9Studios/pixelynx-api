@@ -9,6 +9,8 @@
     <PackageReference Include="C9S.Configuration.HashicorpVault" Version="1.0.1" />
     <PackageReference Include="Google.Apis.Auth" Version="1.41.1" />
     <PackageReference Include="Mailkit" Version="2.4.0.1" />
+    <PackageReference Include="MoreLinq" Version="3.2.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.5.1" />
     <PackageReference Include="VaultSharp" Version="0.11.1002" />
   </ItemGroup>
 

@@ -39,6 +39,7 @@ using C9S.Configuration.HashicorpVault.Helpers;
 using System.Diagnostics;
 using Pixelynx.Api.Filters;
 using Npgsql;
+using Pixelynx.Logic;
 
 namespace Pixelynx.Api
 {
@@ -119,6 +120,7 @@ namespace Pixelynx.Api
             services.AddSingleton<UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddSingleton<IPaymentService, PaymentService>();
 
             // Order matters. This needs to be before AddAuthentication
