@@ -10,15 +10,138 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
 using Pixelynx.Api.Extensions;
+using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
+using Pixelynx.Logic;
 using Pixelynx.Logic.Interfaces;
+using Pixelynx.Logic.Models;
+using Stripe;
 
 namespace Pixelynx.Api.Types
 {
     public class GQLMutation
     {
+        public async Task<string> Login(
+            [Service] IAuthService authService, 
+            [Service] IVaultService vaultService,
+            string email, string password)
+        {
+            var authSettings = await vaultService.GetAuthSecrets();
+            return await authService.Login(email, password, (await vaultService.GetAuthSecrets()).JWTSecret);
+        }
+
+        public async Task<bool> Logout([Service] IAuthService authService) => 
+            await authService.Logout();
+
+        public async Task<GenericResult<string>> Register(
+            [Service] IAuthService authService, 
+            [Service] IHttpContextAccessor contextAccessor,
+            RegistrationRequest user) =>
+                await authService.Register(contextAccessor.HttpContext.Request, new UserEntity 
+                {
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    UserName = user.UserName,
+                    Email = user.Email
+                }, user.Password);
+        
+        public async Task<GenericResult<string>> ConfirmEmail(
+            [Service] IAuthService authService,
+            [Service] IDbContextFactory dbContextFactory,
+            string userId, string code, string type) =>
+                await authService.ConfirmEmail(dbContextFactory, userId, code, type);
+        
+        public async Task<bool> ResendEmail(
+            [Service] IAuthService authService,
+            [Service] IHttpContextAccessor contextAccessor,
+            string userId = "", string email = "") =>
+                await authService.ResendEmail(contextAccessor.HttpContext.Request, userId, email);
+        
+        public async Task<bool> ForgotPassword(
+            [Service] IAuthService authService, 
+            [Service] IHttpContextAccessor contextAccessor, 
+            string email) =>
+                await authService.ForgotPassword(contextAccessor.HttpContext.Request, email);
+        
+        public async Task<GenericResult<string>> ResetPassword(
+            [Service] IAuthService authService,
+            string userId, string code, string newPassword) => 
+                await authService.ResetPassword(userId, code, newPassword);
+        
+        public async Task<GenericResult<string>> UpdatePassword(
+            [Service] IAuthService authService,
+            [Service] IHttpContextAccessor contextAccessor,
+            string oldPassword, string newPassword) => 
+                await authService.UpdatePassword(contextAccessor.HttpContext.User.Identity.Name, 
+                    oldPassword, newPassword);
+        
+        public async Task<bool> SetDefaultPaymentMethod(
+            [Service] IDbContextFactory dbContextFactory,
+            [Service] IHttpContextAccessor contextAccessor,
+            string paymentMethodId)
+        {
+            var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
+            using (var context = dbContextFactory.CreateReadWrite())
+            {
+                var paymentDetails = await context.PaymentDetails.FirstAsync(x => x.UserId == userId);
+                paymentDetails.DefaultPaymentMethodId = paymentMethodId;
+                context.Update(paymentDetails);
+                await context.SaveChangesAsync();
+            }
+
+            return true;
+        }
+
+        public async Task<string> AddCard(
+            [Service] IDbContextFactory dbContextFactory,
+            [Service] IHttpContextAccessor contextAccessor)
+        {
+            var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
+            string customer;
+            using (var context = dbContextFactory.CreateRead())
+            {
+                customer = (await context.PaymentDetails.FirstAsync(x => x.UserId == userId)).CustomerId;
+            }
+
+            var options = new SetupIntentCreateOptions{
+                Customer = customer
+            };
+    
+            var service = new SetupIntentService();
+            var intent = await service.CreateAsync(options);
+            return intent.ClientSecret;
+        }
+
+        public async Task<bool> RemoveCard(
+            [Service] IDbContextFactory dbContextFactory,
+            [Service] IHttpContextAccessor contextAccessor,
+            string cardId)
+        {
+            var cards = await new GQLQuery().Me(dbContextFactory, contextAccessor)
+                .GetCards(contextAccessor, dbContextFactory);
+            
+            if (!cards.Any(x => x.Id == cardId))
+            {
+                return false;
+            }
+
+            var service = new PaymentMethodService();
+            service.Detach(cardId);
+            return true;
+        }
+
+        public string Upload([Service] IHttpContextAccessor contextAccessor)
+        {
+            foreach (var file in contextAccessor.HttpContext.Request.Form)
+            {
+                Console.WriteLine(file.Key);
+            }
+
+            return "";
+        }
+
         public async Task<IEnumerable<GQLAsset>> Download(IReadOnlyList<Guid> assetIds, 
             [Service] IDbContextFactory dbContextFactory,
             [Service] IHttpContextAccessor contextAccessor,
