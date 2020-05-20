@@ -17,10 +17,12 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Pixelynx.Logic.Helpers;
 
 namespace Pixelynx.Api.Controllers
 {
-    [Route("asset")]
+    [Route("asset"), AllowAnonymous]
     public class AssetController : Controller
     {
         private IBlobStorage blobStorage;
@@ -43,6 +45,8 @@ namespace Pixelynx.Api.Controllers
             IQueryable<AssetEntity> assets = dbContextFactory.CreateRead().Assets;
             var fileData = new Dictionary<string, IFormFile>();
 
+            var predicate = PredicateBuilder.True<AssetEntity>();
+
             foreach (var file in request.Files.Where(x => x.FileName.EndsWith("glb")))
             {
                 var ms = new MemoryStream();
@@ -51,12 +55,15 @@ namespace Pixelynx.Api.Controllers
 
                 var fileHash = byteArray.GenerateHash();
                 fileData[fileHash] = file;
-                assets = assets.Where(x => x.FileHash == fileHash);
+
+                predicate = predicate.Or(x => x.FileHash == fileHash);
             }
 
-            var fileNames = assets.Select(x => x.FileHash).ToList();
-            return Ok(fileData.Where(x => !fileNames.Any(filename => filename == x.Key))
-                .Select(x => Path.GetFileNameWithoutExtension(x.Value.FileName)));
+            var fileHashes = assets.Where(predicate).Select(x => x.FileHash).ToList();
+            var files = fileData.Where(x => !fileHashes.Any(hash => hash == x.Key))
+                .Select(x => Path.GetFileNameWithoutExtension(x.Value.FileName));
+    
+            return Ok(files);
         }
 
         [HttpPost, Route("upload")]
