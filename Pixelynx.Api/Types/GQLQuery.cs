@@ -43,7 +43,6 @@ namespace Pixelynx.Api.Types
             
         public string Hello() => "world";
 
-        [Authorize]
         public GQLUser Me([Service]IDbContextFactory context, [Service]IHttpContextAccessor contextAccessor)
         {
             Guid.TryParse(contextAccessor.HttpContext.User.Identity.Name, out var id);
