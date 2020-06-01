@@ -11,7 +11,13 @@ using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Api.Types
 {
-    public class GQLAsset 
+    public class GQLChildAsset
+    {
+        public Guid Id { get; set; }
+        public Core.AssetType Type { get; set; }
+        public Guid ParentId { get; set; }
+    }
+    public class GQLAsset
     {
         public Guid Id { get; set; }
         public Guid? ParentId { get; set; }
@@ -19,13 +25,14 @@ namespace Pixelynx.Api.Types
         public string Name { get; set; }
         public Core.AssetType Type { get; set; }
         public int Cost { get; set; }
+        public IEnumerable<GQLChildAsset> Children { get; set; }
 
         [GraphQLIgnore]
         public Guid StorageId { get; set; }
 
         [GraphQLIgnore]
         public KeyValuePair<string, string> StorageBuckets { get; set; }
-        
+
         public async Task<string> GetUri(IResolverContext ctx, [Service] IBlobStorage blobStorage)
         {
             return (await blobStorage.GetObject(StorageBuckets.Key, $"{StorageId.ToString()}/asset.glb", true)).Uri;
