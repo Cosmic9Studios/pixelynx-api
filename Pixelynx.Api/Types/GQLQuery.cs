@@ -6,6 +6,7 @@ using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Pixelynx.Api.Extensions;
 using Pixelynx.Api.Middleware;
 using Pixelynx.Data.Interfaces;
@@ -24,14 +25,11 @@ namespace Pixelynx.Api.Types
     {
         [UsePagination]
         [UseAssetFilter]
-        public IQueryable<GQLAsset> GetAssets([Service]IDbContextFactory context, int? offset, int? limit)
-        {
-            var myOffset = offset.HasValue ? offset.Value : 0;
-            var myLimit = limit.HasValue ? limit.Value : Int32.MaxValue;
-            return context.CreateRead().Assets
+        public IQueryable<GQLAsset> GetAssets([Service]IDbContextFactory context, int? offset, int? limit) =>
+            context.CreateRead().Assets
+                .Include(x => x.Children)
                 .ToGQLAsset();
-        }
-        
+
         [UseFiltering]
         public IQueryable<GQLUser> GetUsers(
             [Service]IDbContextFactory context, 

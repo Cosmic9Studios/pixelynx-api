@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace Pixelynx.Data.Entities
 {
@@ -16,6 +18,7 @@ namespace Pixelynx.Data.Entities
         public int AssetType { get; set; }
         public string FileHash { get; set; }
         public long Price { get; set; }
+        public List<AssetEntity> Children { get; set; }
 
         [ForeignKey("ParentId")]
         public AssetEntity Parent { get; set; }
