@@ -27,7 +27,7 @@ namespace Pixelynx.Api.Extensions
                 Children = asset.Children.Select(x => new GQLChildAsset
                 {
                     Id = x.Id,
-                    Type = (Core.AssetType)asset.AssetType,
+                    Type = (Core.AssetType)x.AssetType,
                     ParentId = x.ParentId.Value
                 })
             });
