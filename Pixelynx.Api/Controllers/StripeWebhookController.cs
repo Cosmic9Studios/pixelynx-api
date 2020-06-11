@@ -68,6 +68,11 @@ namespace Pixelynx.Api.Controllers
                         }
                     }
                 }
+                else if (stripeEvent.Type == Events.PaymentIntentProcessing) 
+                {
+                    // For testing
+                    return Ok();
+                }
                 else
                 {
                     // Unexpected event type

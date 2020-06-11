@@ -40,6 +40,8 @@ using System.Diagnostics;
 using Pixelynx.Api.Filters;
 using Npgsql;
 using Pixelynx.Logic;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Pixelynx.Api
 {
@@ -108,11 +110,11 @@ namespace Pixelynx.Api
             var context = dbContextFactory.CreateAdmin();
             
             context.Database.Migrate();
-            // context.Database.ExecuteSqlRaw("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";");
-            // On Migration
-            // services.AddDbContext<PixelynxContext>(optitons => dbContextFactory.CreateAdmin());
+            
 
             // Services
+            services.AddHttpContextAccessor();
+            services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IVaultClient>(vaultClient);
             services.AddSingleton<IVaultService>(vaultService);
             services.AddSingleton<IDbContextFactory, DbContextFactory>(options => dbContextFactory);
@@ -123,17 +125,17 @@ namespace Pixelynx.Api
             services.AddScoped<IAuthService, AuthService>();
             services.AddSingleton<IPaymentService, PaymentService>();
 
+            // On Migration
+            // services.AddDbContext<PixelynxContext>(optitons => dbContextFactory.CreateAdmin());
+
             // Order matters. This needs to be before AddAuthentication
-            services.AddIdentity<UserEntity, Role>()
+            services.AddIdentityCore<UserEntity>()
+                .AddRoles<Role>()
                 .AddEntityFrameworkStores<PixelynxContext>()
                 .AddDefaultTokenProviders();
 
             var key = Encoding.ASCII.GetBytes(AsyncHelper.RunSync(vaultService.GetAuthSecrets).JWTSecret);
-            services.AddAuthentication(x =>
-            {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(x =>
             {
                 x.IncludeErrorDetails = true;
@@ -162,7 +164,6 @@ namespace Pixelynx.Api
                 options.Password.RequireDigit = true;  
                 options.Password.RequiredLength = 8;  
                 options.Password.RequireNonAlphanumeric = false;  
-                options.Password.RequireUppercase = true;  
                 options.Password.RequireLowercase = false;  
                 options.Password.RequiredUniqueChars = 6;  
   
@@ -171,12 +172,13 @@ namespace Pixelynx.Api
                 options.Lockout.MaxFailedAccessAttempts = 10;  
                 options.Lockout.AllowedForNewUsers = true;  
   
-                // User settings  
+                // User settings 
                 options.User.RequireUniqueEmail = true;  
                 options.SignIn.RequireConfirmedEmail = true;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
             });
 
+            services.TryAddScoped<SignInManager<UserEntity>>();
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 
             services.AddGraphQL(sp =>
