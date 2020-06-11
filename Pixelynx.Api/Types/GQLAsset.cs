@@ -6,7 +6,10 @@ using GreenDonut;
 using HotChocolate;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.EntityFrameworkCore;
+using Pixelynx.Api.Middleware;
 using Pixelynx.Data.BlobStorage;
+using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Api.Types
@@ -17,15 +20,35 @@ namespace Pixelynx.Api.Types
         public Core.AssetType Type { get; set; }
         public Guid ParentId { get; set; }
     }
+
+    public class GQLAssetFilter
+    {
+        public Guid? Id { get; set; }
+        public Guid? ParentId { get; set; }
+        public string Type { get; set; }
+        [GraphQLName("name_contains")]
+        public string NameContains { get; set; }
+
+        [GraphQLName("OR")]
+        public List<GQLAssetFilter> OR { get; set; }
+    }
+
     public class GQLAsset
     {
         public Guid Id { get; set; }
         public Guid? ParentId { get; set; }
-        public Guid UploaderId { get; set; }
+        public Guid UploaderId { get; set;}
+        public GQLUser Uploader { get; set; }
         public string Name { get; set; }
         public Core.AssetType Type { get; set; }
         public int Cost { get; set; }
-        public IEnumerable<GQLChildAsset> Children { get; set; }
+
+        [ToGQLAsset]
+        [AssetFilter]
+        public IQueryable<AssetEntity> GetChildren(GQLAssetFilter where) => Children;
+
+        [GraphQLIgnore]
+        public IQueryable<AssetEntity> Children { get; set; }
 
         [GraphQLIgnore]
         public Guid StorageId { get; set; }
@@ -40,20 +63,22 @@ namespace Pixelynx.Api.Types
 
         public async Task<string> GetThumbnailUri(IResolverContext ctx, [Service] IBlobStorage blobStorage)
         {
-            return (await blobStorage.ListObjects(StorageBuckets.Value, StorageId.ToString(), false))
+            return (await blobStorage.ListObjects(StorageBuckets
+            .Value, StorageId.ToString(), false))
                 .FirstOrDefault(x => x.Key.Contains("thumbnail"))?.Uri;
         }
         
-        [UseFiltering]
-        public async Task<GQLBuyer[]> GetBuyers(IResolverContext ctx, [Service]IDbContextFactory dbContextFactory) 
+        [ToGQLUser]
+        [UserFilter]
+        public async Task<IQueryable<UserEntity>> GetBuyers(IResolverContext ctx, [Service]IDbContextFactory dbContextFactory, GQLUserFilter where) 
         {
-            return await ctx.GroupDataLoader<Guid, GQLBuyer>("buyers", assetIds => 
+            return (await ctx.GroupDataLoader<Guid, UserEntity>("buyers", assetIds => 
             {
                 var context = dbContextFactory.CreateRead();
-                var assets = context.PurchasedAssets.Where(x => assetIds.Any(y => y == x.AssetId)).ToList();
+                var assets = context.PurchasedAssets.Include(x => x.User).Where(x => assetIds.Any(y => y == x.AssetId));
 
-                return Task.FromResult(assets.Select(x => new GQLBuyer(x.UserId, x.AssetId)).ToLookup(x => x.AssetId));
-            }).LoadAsync(ctx.Parent<GQLAsset>().Id);
+                return Task.FromResult(assets.ToLookup(x => x.AssetId, x => x.User));
+            }).LoadAsync(ctx.Parent<GQLAsset>().Id)).AsQueryable();
         }
 
     }

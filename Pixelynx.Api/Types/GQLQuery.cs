@@ -1,50 +1,44 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Pixelynx.Api.Extensions;
 using Pixelynx.Api.Middleware;
+using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Api.Types
 {
-    public class UseAssetFilter : ObjectFieldDescriptorAttribute
-    {
-        public override void OnConfigure(IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo member)
-        {
-            descriptor.UseFiltering<GQLAsset>();
-        }
-    }
-
     public class GQLQuery
     {
-        [UsePagination]
-        [UseAssetFilter]
-        public IQueryable<GQLAsset> GetAssets([Service]IDbContextFactory context, int? offset, int? limit) =>
-            context.CreateRead().Assets
-                .Include(x => x.Children)
-                .ToGQLAsset();
-
-        [UseFiltering]
-        public IQueryable<GQLUser> GetUsers(
-            [Service]IDbContextFactory context, 
-            [Service] IHttpContextAccessor contextAccessor)
-        {
-            Guid.TryParse(contextAccessor.HttpContext.User.Identity.Name, out var id);
-            return context.CreateRead().Users.ToGQLUser(id);
-        }
-            
         public string Hello() => "world";
 
-        public GQLUser Me([Service]IDbContextFactory context, [Service]IHttpContextAccessor contextAccessor)
+        [ToGQLAsset]
+        [UsePagination]
+        [AssetFilter]
+        public IQueryable<AssetEntity> GetAssets(
+            [Service]IDbContextFactory context, 
+            GQLAssetFilter where, int? offset, int? limit) =>
+            context.CreateRead().Assets
+                .Include(x => x.Parent)
+                .Include(x => x.Uploader)
+                .Include(x => x.Children);
+           
+        [ToGQLUser]
+        [UsePagination]
+        [UserFilter]
+        public IQueryable<UserEntity> GetUsers(
+            [Service]IDbContextFactory context, GQLUserFilter where, int? offset, int? limit) => context.CreateRead().Users;
+        
+        [Authorize]
+        [ToGQLUser]
+        [UseFirstOrDefault]
+        public IQueryable<UserEntity> Me([Service]IDbContextFactory context, [Service]IHttpContextAccessor contextAccessor)
         {
             Guid.TryParse(contextAccessor.HttpContext.User.Identity.Name, out var id);
-            return GetUsers(context, contextAccessor).FirstOrDefault(x => x.Id == id);
+            return context.CreateRead().Users.Where(x => x.Id == id);
         }
     }
 }

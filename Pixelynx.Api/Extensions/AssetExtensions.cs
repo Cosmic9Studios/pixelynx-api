@@ -10,27 +10,23 @@ namespace Pixelynx.Api.Extensions
     {
         public static IEnumerable<GQLAsset> ToGQLAsset(this IEnumerable<AssetEntity> entity)
         {
-            return ToGQLAsset(entity.AsQueryable());
+            return entity.Where(x => x != null).Select(ToGQLAsset);
         }
-        public static IQueryable<GQLAsset> ToGQLAsset(this IQueryable<AssetEntity> entity)
+
+        public static GQLAsset ToGQLAsset(this AssetEntity asset)
         {
-            return entity.Select(asset => new GQLAsset
+            return new GQLAsset
             {
                 Id = asset.Id,
                 Name = asset.Name,
                 Type = (Core.AssetType)asset.AssetType,
                 Cost = (int)asset.Price,
-                UploaderId = asset.UploaderId,
+                Uploader = asset.Uploader?.ToGQLUser(Guid.Empty),
                 ParentId = asset.Parent == null ? null : (Guid?)asset.Parent.Id,
                 StorageId = asset.StorageId,
                 StorageBuckets = new KeyValuePair<string, string>(asset.StorageBucket, asset.MediaStorageBucket),
-                Children = asset.Children.Select(x => new GQLChildAsset
-                {
-                    Id = x.Id,
-                    Type = (Core.AssetType)x.AssetType,
-                    ParentId = x.ParentId.Value
-                })
-            });
+                Children = asset.Children?.AsQueryable()
+            };
         }
     }
 }

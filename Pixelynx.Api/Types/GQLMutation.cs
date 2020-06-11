@@ -32,6 +32,7 @@ namespace Pixelynx.Api.Types
             return await authService.Login(email, password, (await vaultService.GetAuthSecrets()).JWTSecret);
         }
 
+        [Authorize]
         public async Task<bool> Logout([Service] IAuthService authService) => 
             await authService.Logout();
 
@@ -70,6 +71,7 @@ namespace Pixelynx.Api.Types
             string userId, string code, string newPassword) => 
                 await authService.ResetPassword(userId, code, newPassword);
         
+        [Authorize]
         public async Task<GenericResult<string>> UpdatePassword(
             [Service] IAuthService authService,
             [Service] IHttpContextAccessor contextAccessor,
@@ -77,6 +79,7 @@ namespace Pixelynx.Api.Types
                 await authService.UpdatePassword(contextAccessor.HttpContext.User.Identity.Name, 
                     oldPassword, newPassword);
         
+        [Authorize]
         public async Task<bool> SetDefaultPaymentMethod(
             [Service] IDbContextFactory dbContextFactory,
             [Service] IHttpContextAccessor contextAccessor,
@@ -94,6 +97,7 @@ namespace Pixelynx.Api.Types
             return true;
         }
 
+        [Authorize]
         public async Task<string> AddCard(
             [Service] IDbContextFactory dbContextFactory,
             [Service] IHttpContextAccessor contextAccessor)
@@ -114,32 +118,12 @@ namespace Pixelynx.Api.Types
             return intent.ClientSecret;
         }
 
-        public async Task<bool> RemoveCard(
-            [Service] IDbContextFactory dbContextFactory,
-            [Service] IHttpContextAccessor contextAccessor,
-            string cardId)
+        [Authorize]
+        public bool RemoveCard(string cardId)
         {
-            var cards = await new GQLQuery().Me(dbContextFactory, contextAccessor)
-                .GetCards(contextAccessor, dbContextFactory);
-            
-            if (!cards.Any(x => x.Id == cardId))
-            {
-                return false;
-            }
-
             var service = new PaymentMethodService();
             service.Detach(cardId);
             return true;
-        }
-
-        public string Upload([Service] IHttpContextAccessor contextAccessor)
-        {
-            foreach (var file in contextAccessor.HttpContext.Request.Form)
-            {
-                Console.WriteLine(file.Key);
-            }
-
-            return "";
         }
 
         public async Task<IEnumerable<GQLAsset>> Download(IReadOnlyList<Guid> assetIds, 
@@ -159,9 +143,7 @@ namespace Pixelynx.Api.Types
                 }
 
                 var purchasedAssets = await context.PurchasedAssets.ToListAsync();
-                var assets = await context.Assets.Where(x => assetIds.Any(id => x.Id == id))
-                    .ToGQLAsset()
-                    .ToListAsync();
+                var assets = context.Assets.Where(x => assetIds.Any(id => x.Id == id)).ToGQLAsset();
 
                 bool notPurchased = assets.Any(x =>
                 {
@@ -234,7 +216,8 @@ namespace Pixelynx.Api.Types
                         {
                             AssetId = id,
                             UserId = userId,
-                            TransactionId = $"cred_${total}_${Guid.NewGuid().ToString()}"
+                            TransactionId = $"cred_${total}_${Guid.NewGuid().ToString()}",
+                            Date = DateTime.Now
                         });
                     });
 
