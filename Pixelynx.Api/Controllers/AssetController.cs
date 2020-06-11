@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Identity;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Pixelynx.Logic.Helpers;
+using LinqKit;
 
 namespace Pixelynx.Api.Controllers
 {
@@ -45,7 +45,7 @@ namespace Pixelynx.Api.Controllers
             IQueryable<AssetEntity> assets = dbContextFactory.CreateRead().Assets;
             var fileData = new Dictionary<string, IFormFile>();
 
-            var predicate = PredicateBuilder.True<AssetEntity>();
+            var predicate = PredicateBuilder.New<AssetEntity>();
 
             foreach (var file in request.Files.Where(x => x.FileName.EndsWith("glb")))
             {
