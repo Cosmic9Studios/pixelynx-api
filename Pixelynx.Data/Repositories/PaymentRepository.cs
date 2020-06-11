@@ -78,7 +78,8 @@ namespace Pixelynx.Data.Repositories
                     {
                         AssetId = asset,
                         UserId = userId,
-                        TransactionId = transactionId
+                        TransactionId = transactionId,
+                        Date = DateTime.Now
                     });
                 });
                 

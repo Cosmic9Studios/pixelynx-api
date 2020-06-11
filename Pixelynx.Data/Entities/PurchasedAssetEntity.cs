@@ -9,6 +9,7 @@ namespace Pixelynx.Data.Entities
         public Guid UserId { get; set; }
         public Guid AssetId { get; set; }
         public string TransactionId { get; set; }
+        public DateTime Date { get; set; }
 
         [ForeignKey("UserId")]
         public UserEntity User { get; set ;}
