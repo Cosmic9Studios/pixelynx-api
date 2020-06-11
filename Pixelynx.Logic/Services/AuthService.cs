@@ -47,7 +47,11 @@ public class AuthService : IAuthService
         var user = await userManager.FindByEmailAsync(email);
         if (user == null || !user.EmailConfirmed) 
         {
-            return null;
+            user = await userManager.FindByNameAsync(email);
+            if (user == null || !user.EmailConfirmed) 
+            {
+                return null;
+            }
         }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, password, false);
@@ -63,7 +67,7 @@ public class AuthService : IAuthService
 
     public async Task<bool> Logout() 
     {
-        await signInManager.SignOutAsync();
+        // await signInManager.SignOutAsync();
         return true;
     }
 
