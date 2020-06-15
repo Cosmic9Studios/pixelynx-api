@@ -59,11 +59,13 @@ namespace Pixelynx.Api.Controllers
                 predicate = predicate.Or(x => x.FileHash == fileHash);
             }
 
-            var fileHashes = assets.Where(predicate).Select(x => x.FileHash).ToList();
-            var files = fileData.Where(x => !fileHashes.Any(hash => hash == x.Key))
+            var duplicateAssets = assets.Where(predicate).ToList();
+            var parent = duplicateAssets.FirstOrDefault(x => x.AssetType == (int)Core.AssetType.Model);
+    
+            var files = fileData.Where(x => !duplicateAssets.Any(asset => asset.FileHash == x.Key))
                 .Select(x => Path.GetFileNameWithoutExtension(x.Value.FileName));
     
-            return Ok(files);
+            return Ok(new { Files = files, ParentId = parent?.Id});
         }
 
         [HttpPost, Route("upload")]
