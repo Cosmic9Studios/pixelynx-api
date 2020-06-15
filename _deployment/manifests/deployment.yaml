@@ -73,7 +73,7 @@ metadata:
         certmanager.k8s.io/acme-http01-edit-in-place: "true"
         kubernetes.io/ingress.class: nginx
         kubernetes.io/tls-acme: "true"
-        nginx.ingress.kubernetes.io/proxy-body-size: "1000m"
+        nginx.ingress.kubernetes.io/proxy-body-size: "1000M"
 spec:
     tls:
     - hosts:
@@ -87,3 +87,16 @@ spec:
           backend:
             serviceName: pxl-api-svc
             servicePort: 5000
+
+--- 
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: nginx-configuration
+    namespace: ingress-nginx
+    labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+data:
+    proxy-body-size: 1000M
