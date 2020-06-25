@@ -36,6 +36,7 @@ namespace Pixelynx.Api.Types
     public class GQLAsset
     {
         public Guid Id { get; set; }
+        public GQLAsset Parent { get; set; }
         public Guid? ParentId { get; set; }
         public Guid UploaderId { get; set;}
         public GQLUser Uploader { get; set; }
