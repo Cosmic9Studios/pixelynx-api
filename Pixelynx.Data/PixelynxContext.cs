@@ -52,10 +52,14 @@ namespace Pixelynx.Data
             builder.Entity<AssetEntity>().ToTable("Assets");
             builder.Entity<PaymentDetailsEntity>().ToTable("PaymentDetails");
             builder.Entity<PurchasedAssetEntity>().ToTable("PurchasedAssets");
+            builder.Entity<CartEntity>().ToTable("ShoppingCarts");
+            builder.Entity<CartItemEntity>().ToTable("CartItems");
         }
 
         public DbSet<AssetEntity> Assets { get; set; }  
         public DbSet<PaymentDetailsEntity> PaymentDetails { get; set; }
         public DbSet<PurchasedAssetEntity> PurchasedAssets { get; set; }
+        public DbSet<CartEntity> Carts { get; set; }
+        public DbSet<CartItemEntity> CartItems { get; set; }
     }
 }

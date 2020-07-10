@@ -155,6 +155,71 @@ namespace Pixelynx.Api.Types
         }
 
         [Authorize]
+        public async Task<bool> AddToCart(
+            [Service] IDbContextFactory dbContextFactory, 
+            [Service] IHttpContextAccessor contextAccessor, 
+            List<Guid> assetIds)
+        {
+            var dbContext = dbContextFactory.CreateReadWrite();
+            foreach (var assetId in assetIds)
+            {
+                var asset = await dbContext.Assets.FirstOrDefaultAsync(x => x.Id == assetId);
+                if (asset == null)
+                {
+                    return false;
+                }
+
+                var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
+                var cart = await dbContext.Carts.FirstOrDefaultAsync(x => x.UserId == userId);
+                if (cart == null)
+                {
+                    cart = new CartEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = userId,
+                        Status = CartStatus.New,
+                        CreatedDate = DateTime.UtcNow,
+                        UpdatedDate = DateTime.UtcNow,
+                    };
+                    await dbContext.Carts.AddAsync(cart);
+                    await dbContext.SaveChangesAsync();
+                }
+
+                var isItemInCart = await dbContext.CartItems.AnyAsync(x => x.AssetId == assetId);
+                if (!isItemInCart)
+                {
+                    await dbContext.CartItems.AddAsync(new CartItemEntity
+                    {
+                        AssetId = assetId,
+                        CartId = cart.Id,
+                        CreatedDate = DateTime.UtcNow,
+                    });
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+
+            return true;
+        }
+
+        [Authorize]
+        public async Task<bool> RemoveFromCart(
+            [Service] IDbContextFactory dbContextFactory,
+            [Service] IHttpContextAccessor contextAccessor,
+            List<Guid> assetIds)
+        {
+            var dbContext = dbContextFactory.CreateReadWrite();
+            var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
+            var cart = await dbContext.Carts.FirstOrDefaultAsync(x => x.UserId == userId);
+            var assetsToRemove = dbContext.CartItems.Where(x =>
+                x.CartId == cart.Id && assetIds.Any(aId => aId == x.AssetId)).ToList();
+            
+            dbContext.CartItems.RemoveRange(assetsToRemove);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+
+        [Authorize]
         public async Task<string> AddCredits(
             [Service] IPaymentService paymentService,
             [Service] IHttpContextAccessor contextAccessor,
@@ -177,26 +242,29 @@ namespace Pixelynx.Api.Types
         public async Task<PurchaseResponse> PurchaseAssets(
             [Service] IPaymentService paymentService,
             [Service] IDbContextFactory dbContextFactory,
-            [Service] IHttpContextAccessor contextAccessor,
-            IReadOnlyCollection<Guid> assetIds, bool? useCredits)
+            [Service] IHttpContextAccessor contextAccessor, bool? useCredits)
         {
             if (!Guid.TryParse(contextAccessor.HttpContext.User.Identity.Name, out var userId))
             {
                 return null;
             }
-            var context = dbContextFactory.CreateReadWrite();
-            var user = context.Users.First(x => x.Id == userId);
-
-            var assetsToPurchase = new List<Guid>(assetIds);
-
             
-            assetsToPurchase.RemoveAll(id => 
-                context.PurchasedAssets.FirstOrDefault(x => x.UserId == userId && x.AssetId != id) == null
-            );
+            var context = dbContextFactory.CreateReadWrite();
+            var cart = await context.Carts.LastOrDefaultAsync(x => x.UserId == userId && x.Status == CartStatus.New);
+            if (cart == null)
+            {
+                return null;
+            }
 
+            var assetsToPurchase = context.CartItems
+                .Include(x => x.Asset)
+                .Where(x => x .CartId == cart.Id)
+                .Select(x => x.Asset.Id);
+            
+            var user = context.Users.First(x => x.Id == userId);
             var total = assetsToPurchase.Sum(id => context.Assets.First(x => x.Id == id).Price);
 
-            if (useCredits.Value == true)
+            if (useCredits != null && useCredits.Value == true)
             {
                 var credits = user.Credits;
                 if (credits < total) 
@@ -211,13 +279,13 @@ namespace Pixelynx.Api.Types
                 {
                     user.Credits -= (int)total;
                     context.Users.Update(user);
-                    assetIds.ForEach(async id => {
+                    assetsToPurchase.ForEach(async id => {
                         await context.PurchasedAssets.AddAsync(new PurchasedAssetEntity
                         {
                             AssetId = id,
                             UserId = userId,
                             TransactionId = $"cred_${total}_${Guid.NewGuid().ToString()}",
-                            Date = DateTime.Now
+                            Date = DateTime.UtcNow
                         });
                     });
 
@@ -238,7 +306,7 @@ namespace Pixelynx.Api.Types
                     {
                         { "type", "ASSETS" },
                         { "userId", userId.ToString() },
-                        { "assets", string.Join(',', assetIds) },
+                        { "assets", string.Join(',', assetsToPurchase) },
                     })
                 };
             }
