@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using C9S.Configuration.HashicorpVault.Helpers;
+using Google.Api;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
@@ -55,6 +57,15 @@ namespace Pixelynx.Api.Controllers
                         }
 
                         await unitOfWork.PaymentRepository.PurchaseAssets(userId, assets.ToList(), paymentIntent.Charges.Data[0].BalanceTransactionId);
+                        using (var context = dbContextFactory.CreateReadWrite())
+                        {
+                            var cart = await context.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
+                                .OrderByDescending(x => x.UpdatedDate).FirstOrDefaultAsync();
+
+                            cart.Status = CartStatus.Complete;
+                            context.Carts.Update(cart);
+                            await context.SaveChangesAsync();
+                        }
                     }
                     else if (type == "CREDITS")
                     {

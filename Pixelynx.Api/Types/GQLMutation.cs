@@ -250,7 +250,8 @@ namespace Pixelynx.Api.Types
             }
             
             var context = dbContextFactory.CreateReadWrite();
-            var cart = await context.Carts.LastOrDefaultAsync(x => x.UserId == userId && x.Status == CartStatus.New);
+            var cart = await context.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
+                .OrderByDescending(x => x.UpdatedDate).FirstOrDefaultAsync();
             if (cart == null)
             {
                 return null;
@@ -275,41 +276,38 @@ namespace Pixelynx.Api.Types
                         Error = "Insufficient Credits"
                     };
                 }
-                else 
-                {
-                    user.Credits -= (int)total;
-                    context.Users.Update(user);
-                    assetsToPurchase.ForEach(async id => {
-                        await context.PurchasedAssets.AddAsync(new PurchasedAssetEntity
-                        {
-                            AssetId = id,
-                            UserId = userId,
-                            TransactionId = $"cred_${total}_${Guid.NewGuid().ToString()}",
-                            Date = DateTime.UtcNow
-                        });
+ 
+                user.Credits -= (int)total;
+                context.Users.Update(user);
+                assetsToPurchase.ForEach(async id => {
+                    await context.PurchasedAssets.AddAsync(new PurchasedAssetEntity
+                    {
+                        AssetId = id,
+                        UserId = userId,
+                        TransactionId = $"cred_${total}_${Guid.NewGuid().ToString()}",
+                        Date = DateTime.UtcNow
                     });
+                });
 
-                    await context.SaveChangesAsync();
+                await context.SaveChangesAsync();
 
-                    return new PurchaseResponse
-                    {
-                        Succeeded = true
-                    };
-                }
-            }
-            else 
-            {
-                return new PurchaseResponse 
+                return new PurchaseResponse
                 {
-                    Succeeded = true,
-                    Data = await paymentService.CreatePaymentIntent(userId, (int)total + 2, new Dictionary<string, string>
-                    {
-                        { "type", "ASSETS" },
-                        { "userId", userId.ToString() },
-                        { "assets", string.Join(',', assetsToPurchase) },
-                    })
+                    Succeeded = true
                 };
+             
             }
+
+            return new PurchaseResponse
+            {
+                Succeeded = true,
+                Data = await paymentService.CreatePaymentIntent(userId, (int) total + 2, new Dictionary<string, string>
+                {
+                    {"type", "ASSETS"},
+                    {"userId", userId.ToString()},
+                    {"assets", string.Join(',', assetsToPurchase)},
+                })
+            };
         }
     }
 }
