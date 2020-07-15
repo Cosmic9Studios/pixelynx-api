@@ -14,13 +14,6 @@ using Pixelynx.Data.Interfaces;
 
 namespace Pixelynx.Api.Types
 {
-    public class GQLChildAsset
-    {
-        public Guid Id { get; set; }
-        public Core.AssetType Type { get; set; }
-        public Guid ParentId { get; set; }
-    }
-
     public class GQLAssetFilter
     {
         public Guid? Id { get; set; }
@@ -68,19 +61,20 @@ namespace Pixelynx.Api.Types
             .Value, StorageId.ToString(), false))
                 .FirstOrDefault(x => x.Key.Contains("thumbnail"))?.Uri;
         }
-        
+
         [ToGQLUser]
         [UserFilter]
-        public async Task<IQueryable<UserEntity>> GetBuyers(IResolverContext ctx, [Service]IDbContextFactory dbContextFactory, GQLUserFilter where) 
+        public async Task<IQueryable<UserEntity>> GetBuyers(IResolverContext ctx,
+            [Service] IDbContextFactory dbContextFactory, GQLUserFilter where)
         {
-            return (await ctx.GroupDataLoader<Guid, UserEntity>("buyers", assetIds => 
+            return (await ctx.GroupDataLoader<Guid, UserEntity>("buyers", assetIds =>
             {
                 var context = dbContextFactory.CreateRead();
-                var assets = context.PurchasedAssets.Include(x => x.User).Where(x => assetIds.Any(y => y == x.AssetId));
+                var assets = context
+                    .PurchasedAssets.Include(x => x.User).Where(x => assetIds.Any(y => y == x.AssetId));
 
                 return Task.FromResult(assets.ToLookup(x => x.AssetId, x => x.User));
             }).LoadAsync(ctx.Parent<GQLAsset>().Id)).AsQueryable();
         }
-
     }
 }

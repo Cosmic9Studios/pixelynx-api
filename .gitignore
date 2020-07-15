@@ -7,3 +7,5 @@ node_modules
 appsecrets.json
 .terraform/
 localhost.pfx
+.idea
+Pixelynx.sln.DotSettings.user

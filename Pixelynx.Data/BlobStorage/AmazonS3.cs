@@ -43,7 +43,7 @@ namespace Pixelynx.Data.BlobStorage
                 {
                     BucketName = bucket,
                     Key = obj.Key,
-                    Expires = DateTime.Now.AddMinutes(5),
+                    Expires = DateTime.UtcNow.AddMinutes(5),
                     Protocol = Protocol.HTTP
                 }) : $"{client.Config.ServiceURL}/{bucket}/{obj.Key}"
             };
@@ -62,7 +62,7 @@ namespace Pixelynx.Data.BlobStorage
                     {
                         BucketName = bucket,
                         Key = obj.Key,
-                        Expires = DateTime.Now.AddMinutes(5),
+                        Expires = DateTime.UtcNow.AddMinutes(5),
                         Protocol = Protocol.HTTP
                     }) : $"{client.Config.ServiceURL}/{bucket}/{obj.Key}"
                 });

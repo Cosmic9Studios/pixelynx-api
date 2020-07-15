@@ -62,7 +62,7 @@ namespace Pixelynx.Api.Controllers
             var duplicateAssets = assets.Where(predicate).ToList();
             var parent = duplicateAssets.FirstOrDefault(x => x.AssetType == (int)Core.AssetType.Model);
     
-            var files = fileData.Where(x => !duplicateAssets.Any(asset => asset.FileHash == x.Key))
+            var files = fileData.Where(x => duplicateAssets.All(asset => asset.FileHash != x.Key))
                 .Select(x => Path.GetFileNameWithoutExtension(x.Value.FileName));
     
             return Ok(new { Files = files, ParentId = parent?.Id});
