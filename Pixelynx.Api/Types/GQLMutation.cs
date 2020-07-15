@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
@@ -125,32 +124,23 @@ namespace Pixelynx.Api.Types
             service.Detach(cardId);
             return true;
         }
-
+        
+        [Authorize]
         public async Task<IEnumerable<GQLAsset>> Download(IReadOnlyList<Guid> assetIds, 
             [Service] IDbContextFactory dbContextFactory,
-            [Service] IHttpContextAccessor contextAccessor,
-            [Service] UserManager<UserEntity> userManager)
+            [Service] IHttpContextAccessor contextAccessor)
         {
             using (var context = dbContextFactory.CreateRead())
             {
-                var email = contextAccessor.HttpContext.User.Claims
-                    .FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+                var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
+                var assets = context.PurchasedAssets.Where(x => x.UserId == userId)
+                    .Select(x => x.Asset)
+                    .Concat(context.Assets.Where(x => x.UploaderId == userId))
+                    .Where(x => assetIds.Any(id => x.Id == id))
+                    .ToGQLAsset()
+                    .ToList();
 
-                UserEntity user = null;
-                if (email != null)
-                {
-                    user = await userManager.FindByEmailAsync(email);
-                }
-
-                var purchasedAssets = await context.PurchasedAssets.ToListAsync();
-                var assets = context.Assets.Where(x => assetIds.Any(id => x.Id == id)).ToGQLAsset();
-
-                bool notPurchased = assets.Any(x =>
-                {
-                    return x.Cost != 0 && purchasedAssets.All(asset => asset.AssetId != x.Id);
-                });
-                
-                return notPurchased ? new List<GQLAsset>() : assets;
+                return assets;
             }
         }
 
