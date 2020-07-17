@@ -28,6 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="MoreLinq" Version="3.2.0" />
+    <PackageReference Include="Rookout" Version="0.1.33" />
     <PackageReference Include="Stripe.net" Version="35.11.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.1" />
   </ItemGroup>

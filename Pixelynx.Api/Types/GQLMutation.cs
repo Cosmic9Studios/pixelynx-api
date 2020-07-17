@@ -251,7 +251,7 @@ namespace Pixelynx.Api.Types
 
             var assetsToPurchase = context.CartItems
                 .Include(x => x.Asset)
-                .Where(x => x .CartId == cart.Id)
+                .Where(x => x.CartId == cart.Id)
                 .Select(x => x.Asset.Id);
             
             var user = context.Users.First(x => x.Id == userId);

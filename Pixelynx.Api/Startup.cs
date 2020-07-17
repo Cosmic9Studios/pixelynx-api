@@ -59,6 +59,12 @@ namespace Pixelynx.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            Rook.RookOptions options = new Rook.RookOptions()
+            {
+                token = "eb79354d2b8f6c741e70289f80549489a9be1c9cf982a420878ac1d748dd4b8c"
+            };
+            Rook.API.Start(options);
+
             Configuration.ResolveVariables("${", "}");
             var connectionString = Configuration.GetConnectionString("Pixelynx");
 
