@@ -257,7 +257,7 @@ namespace Pixelynx.Api.Types
             var user = context.Users.First(x => x.Id == userId);
             var total = assetsToPurchase.Sum(id => context.Assets.First(x => x.Id == id).Price);
 
-            if (useCredits != null && useCredits.Value == true)
+            if (total == 0 || useCredits != null && useCredits.Value == true)
             {
                 var credits = user.Credits;
                 if (credits < total) 
@@ -287,15 +287,9 @@ namespace Pixelynx.Api.Types
                 {
                     Succeeded = true
                 };
-             
             }
 
-            var tax = 2;
-            if (total == 0 || total >= 20) 
-            {
-                tax = 0;
-            }
-
+            var tax = total >= 20 ? 0 : 2;
             return new PurchaseResponse
             {
                 Succeeded = true,
