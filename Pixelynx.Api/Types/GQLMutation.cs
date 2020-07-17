@@ -156,7 +156,7 @@ namespace Pixelynx.Api.Types
                 var asset = await dbContext.Assets.FirstOrDefaultAsync(x => x.Id == assetId);
                 if (asset == null)
                 {
-                    return false;
+                    throw new InvalidOperationException($"Unable to find asset with id {assetId}");
                 }
 
                 var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
@@ -177,7 +177,7 @@ namespace Pixelynx.Api.Types
                     await dbContext.SaveChangesAsync();
                 }
 
-                var isItemInCart = await dbContext.CartItems.AnyAsync(x => x.AssetId == assetId);
+                var isItemInCart = await dbContext.CartItems.AnyAsync(x => x.CartId == cart.Id && x.AssetId == assetId);
                 if (!isItemInCart)
                 {
                     await dbContext.CartItems.AddAsync(new CartItemEntity
@@ -290,10 +290,16 @@ namespace Pixelynx.Api.Types
              
             }
 
+            var tax = 2;
+            if (total == 0 || total >= 20) 
+            {
+                tax = 0;
+            }
+
             return new PurchaseResponse
             {
                 Succeeded = true,
-                Data = await paymentService.CreatePaymentIntent(userId, (int) total + 2, new Dictionary<string, string>
+                Data = await paymentService.CreatePaymentIntent(userId, (int) total + tax, new Dictionary<string, string>
                 {
                     {"type", "ASSETS"},
                     {"userId", userId.ToString()},
