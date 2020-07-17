@@ -160,7 +160,9 @@ namespace Pixelynx.Api.Types
                 }
 
                 var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
-                var cart = await dbContext.Carts.FirstOrDefaultAsync(x => x.UserId == userId);
+                var cart = await dbContext.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
+                                .OrderByDescending(x => x.UpdatedDate).FirstOrDefaultAsync();
+                
                 if (cart == null)
                 {
                     cart = new CartEntity
