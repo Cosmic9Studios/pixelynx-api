@@ -285,7 +285,8 @@ namespace Pixelynx.Api.Types
 
                 return new PurchaseResponse
                 {
-                    Succeeded = true
+                    Succeeded = true,
+                    Data = "free"
                 };
             }
 
