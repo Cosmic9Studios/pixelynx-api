@@ -18,6 +18,9 @@ namespace Pixelynx.Data.Entities
         public int AssetType { get; set; }
         public string FileHash { get; set; }
         public long Price { get; set; }
+        public int Background { get; set; } = 0;
+        public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
         public List<AssetEntity> Children { get; set; }
 
         [ForeignKey("ParentId")]
