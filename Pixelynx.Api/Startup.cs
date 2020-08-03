@@ -146,7 +146,7 @@ namespace Pixelynx.Api
             services.AddSingleton<IPaymentService, PaymentService>();
 
             // On Migration
-            services.AddDbContext<PixelynxContext>(optitons => dbContextFactory.CreateAdmin());
+            // services.AddDbContext<PixelynxContext>(optitons => dbContextFactory.CreateAdmin());
 
             // Order matters. This needs to be before AddAuthentication
             services.AddIdentityCore<UserEntity>()
