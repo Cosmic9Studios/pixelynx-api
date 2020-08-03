@@ -32,6 +32,8 @@ namespace Pixelynx.Api.Types
         public string LastName { get; set; }
         public string Email { get; set; }
         public int? Credits { get; set; }
+        
+        public bool IsAdmin { get; set; }
 
         [ToGQLAsset]
         [UsePagination]
