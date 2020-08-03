@@ -7,7 +7,7 @@ sleep 5;
 vault login token 
 vault secrets disable secret
 vault secrets enable -path=secret -version=1 kv
-vault kv put secret/Auth JWTSecret="bfe222e7-b5eb-4d31-91df-c30797324fbc" StripeSecretKey="sk_test_7C2P4QKZAOKjdUpEkNSB7C3L" StripeEndpointSecret="whsec_9aXFQ2Meb8Eub6t60X71yhhGW1lxxFHE"
+vault kv put secret/Auth JWTSecret="bfe222e7-b5eb-4d31-91df-c30797324fbc" StripeSecretKey="sk_test_51H8tYRK82iCDXAEy8UYanYuKbpmwU8sPgFVUldstqHJ0O2pyBuJqBOhKUd8tuUJMoUTtLiVNo4sy2FBp7OmmW4wn00z6ESyaXG" StripeEndpointSecret="whsec_9aXFQ2Meb8Eub6t60X71yhhGW1lxxFHE"
 vault secrets enable database
 vault write database/config/postgres \
     plugin_name=postgresql-database-plugin \
@@ -67,6 +67,20 @@ vault write database/roles/read_write \
         GRANT USAGE ON SCHEMA public TO \"{{name}}\"; \
         GRANT ALL ON ALL TABLES IN SCHEMA public TO \"{{name}}\"; \
         ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"{{name}}\";" \
+    revocation_statements="
+        REASSIGN OWNED BY \"{{name}}\" TO postgres; \
+        DROP OWNED BY \"{{name}}\"; \
+        DROP ROLE \"{{name}}\";" \
+    default_ttl="10m" \
+    max_ttl="20m"
+
+vault write database/roles/session \
+    db_name=postgres \
+    creation_statements="
+        CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
+        GRANT \"{{name}}\" to postgres; \
+        GRANT USAGE ON SCHEMA public TO \"{{name}}\"; \
+        GRANT ALL ON public.session TO \"{{name}}\";"
     revocation_statements="
         REASSIGN OWNED BY \"{{name}}\" TO postgres; \
         DROP OWNED BY \"{{name}}\"; \

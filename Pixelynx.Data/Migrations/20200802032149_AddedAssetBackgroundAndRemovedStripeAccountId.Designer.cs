@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pixelynx.Data;
@@ -9,9 +10,10 @@ using Pixelynx.Data;
 namespace Pixelynx.Data.Migrations
 {
     [DbContext(typeof(PixelynxContext))]
-    partial class PixelynxContextModelSnapshot : ModelSnapshot
+    [Migration("20200802032149_AddedAssetBackgroundAndRemovedStripeAccountId")]
+    partial class AddedAssetBackgroundAndRemovedStripeAccountId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,9 +32,6 @@ namespace Pixelynx.Data.Migrations
 
                     b.Property<int>("Background")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -57,9 +56,6 @@ namespace Pixelynx.Data.Migrations
 
                     b.Property<Guid>("StorageId")
                         .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedDate")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<Guid>("UploaderId")
                         .HasColumnType("uuid");

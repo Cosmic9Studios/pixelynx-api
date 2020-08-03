@@ -15,6 +15,10 @@ namespace Pixelynx.Data.Models
         private string readConnectionString;
         private string writeConnectionString;
         private string readWriteConnectionString;
+        private string sessionConnectionString;
+
+        public string AdminConnectionString => adminConnectionString;
+        public string SessionConnectionString => sessionConnectionString;
 
         private Stopwatch adminWatch = null;
         private Stopwatch readWatch = null;
@@ -83,6 +87,19 @@ namespace Pixelynx.Data.Models
 
             var options = new DbContextOptionsBuilder<PixelynxContext>()
                 .UseNpgsql(writeConnectionString).Options;
+
+            return new PixelynxContext(options, loggerFactory);
+        }
+        
+        public PixelynxContext CreateSession()
+        {
+            if (string.IsNullOrWhiteSpace(sessionConnectionString))
+            {
+                sessionConnectionString = GetConnectionString(VaultRole.SESSION);
+            }
+   
+            var options = new DbContextOptionsBuilder<PixelynxContext>()
+                .UseNpgsql(sessionConnectionString).Options;
 
             return new PixelynxContext(options, loggerFactory);
         }

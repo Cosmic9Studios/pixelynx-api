@@ -36,6 +36,7 @@ namespace Pixelynx.Api.Types
         public string Name { get; set; }
         public Core.AssetType Type { get; set; }
         public int Cost { get; set; }
+        public int Background { get; set; }
 
         [ToGQLAsset]
         [AssetFilter]

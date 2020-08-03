@@ -1,16 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using C9S.Configuration.HashicorpVault.Helpers;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using MoreLinq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Pixelynx.Api.Models;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
 using Pixelynx.Api.Settings;
+using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
+using Pixelynx.Core.Helpers;
 using Stripe;
+using Stripe.Issuing;
+using AsyncHelper = Pixelynx.Core.Helpers.AsyncHelper;
 
 namespace Pixelynx.Api.Controllers
 {
@@ -18,10 +30,14 @@ namespace Pixelynx.Api.Controllers
     public class PaymentController : Controller
     {
         private UnitOfWork unitOfWork;
+        private IVaultService vaultService;
+        private IDistributedCache cache;
 
-        public PaymentController(UnitOfWork unitOfWork)
+        public PaymentController(UnitOfWork unitOfWork, IVaultService vaultService, IDistributedCache cache)
         {
             this.unitOfWork = unitOfWork;
+            this.vaultService = vaultService;
+            this.cache = cache;
         }
 
         [Route("token"), HttpGet, AllowAnonymous]
@@ -29,7 +45,7 @@ namespace Pixelynx.Api.Controllers
         {
             return Ok(stripeSettings.Value.PublishKey);
         }
-
+        
         [Route("wallet/cards"), HttpGet]
         public async Task<IActionResult> GetCards()
         {
@@ -89,40 +105,6 @@ namespace Pixelynx.Api.Controllers
         {
             var userId = Guid.Parse(HttpContext.User.Identity.Name);
             return Ok(await unitOfWork.PaymentRepository.GetDefaultPaymentId(userId));
-        } 
-
-        [Route("purchase")]
-        public async Task<IActionResult> Purhase([FromBody] PurchaseAssetsRequest request)
-        {
-            var userId = HttpContext.User.Identity.Name;
-            var assets = request.Assets.Where(x => AsyncHelper.RunSync(() => unitOfWork.AssetRepository.IsOwned(Guid.Parse(userId), x)) == false);
-            var total = assets.Select(x => AsyncHelper.RunSync(() => unitOfWork.AssetRepository.GetAssetCost(x))).Sum();
-            
-            if (total == 0)
-            {
-                if (assets.Any())
-                {
-                    await unitOfWork.PaymentRepository.PurchaseAssets(Guid.Parse(userId), assets.ToList(), "free");
-                }
-                return Ok("free");
-            }
-            
-            var options = new PaymentIntentCreateOptions
-            {
-                Customer = await unitOfWork.PaymentRepository.GetCustomerId(Guid.Parse(userId)),
-                Amount = (long)total * 100,
-                Currency = "usd",
-                Metadata = new Dictionary<string, string>
-                {
-                    { "userId", userId },
-                    { "assets", string.Join(',', request.Assets) },
-                },
-            };
-
-            var service = new PaymentIntentService();
-            var paymentIntent = await service.CreateAsync(options);
-
-            return Ok(paymentIntent.ClientSecret);
         }
     }
 }

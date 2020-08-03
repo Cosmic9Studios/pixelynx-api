@@ -37,6 +37,7 @@ using VaultSharp.V1.AuthMethods;
 using System.Collections.Generic;
 using C9S.Configuration.HashicorpVault.Helpers;
 using System.Diagnostics;
+using Community.Microsoft.Extensions.Caching.PostgreSql;
 using Pixelynx.Api.Filters;
 using Npgsql;
 using Pixelynx.Logic;
@@ -49,6 +50,12 @@ namespace Pixelynx.Api
     {
         public IWebHostEnvironment HostingEnvironment { get; }
         public IConfiguration Configuration { get; }
+
+        private string GetConnectionString(DbContextFactory dbContextFactory)
+        {
+            dbContextFactory.CreateSession();
+            return dbContextFactory.SessionConnectionString;
+        }
 
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
@@ -116,7 +123,14 @@ namespace Pixelynx.Api
             var context = dbContextFactory.CreateAdmin();
             
             context.Database.Migrate();
-            
+
+            services.AddSession();
+            services.AddDistributedPostgreSqlCache(setup =>
+            {
+                setup.SchemaName = "public";
+                setup.TableName = "session";
+                setup.ConnectionString = GetConnectionString(dbContextFactory);
+            });
 
             // Services
             services.AddHttpContextAccessor();
@@ -204,6 +218,7 @@ namespace Pixelynx.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseSession();
             app.UseRouting();
 
             // Global cors policy

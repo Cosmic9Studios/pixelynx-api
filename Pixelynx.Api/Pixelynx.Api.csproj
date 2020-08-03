@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="C9S.Configuration.Variables" Version="1.0.0" />
     <PackageReference Include="C9S.Configuration.HashicorpVault" Version="1.0.1" />
+    <PackageReference Include="Community.Microsoft.Extensions.Caching.PostgreSql" Version="1.0.30" />
     <PackageReference Include="glTF2Loader" Version="1.1.3-alpha" />
     <PackageReference Include="Google.Cloud.Kms.V1" Version="1.0.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="10.4.0" />

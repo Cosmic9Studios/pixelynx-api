@@ -9,7 +9,8 @@ namespace Pixelynx.Data.Interfaces
         ADMIN,
         READ,
         WRITE,
-        READ_WRITE
+        READ_WRITE,
+        SESSION,
     }
     public interface IVaultService
     {

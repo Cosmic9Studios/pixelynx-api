@@ -26,6 +26,7 @@ namespace Pixelynx.Api.Extensions
                 StorageId = asset.StorageId,
                 StorageBuckets = new KeyValuePair<string, string>(asset.StorageBucket, asset.MediaStorageBucket),
                 Parent = asset.Parent?.ToGQLAsset(),
+                Background = asset.Background,
                 Children = asset.Children?.AsQueryable()
             };
         }
