@@ -9,6 +9,7 @@ using Pixelynx.Api.Extensions;
 using Pixelynx.Api.Types;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
+using Pixelynx.Logic.Services;
 
 namespace Pixelynx.Api.Middleware
 {
@@ -59,17 +60,18 @@ namespace Pixelynx.Api.Middleware
                 await next(context);
                 var contextAccessor = context.Service<IHttpContextAccessor>();
                 var vaultService = context.Service<IVaultService>();
+                var payoutService = context.Service<PayoutService>();
                 Guid.TryParse(contextAccessor.HttpContext.User.Identity.Name, out var id);
 
                 if(context.Result is IQueryable<object> query)
                 {
                     var queryable = query.Cast<UserEntity>();
-                    context.Result = queryable.ToGQLUser(id, vaultService);
+                    context.Result = queryable.ToGQLUser(id, payoutService, vaultService);
                 }
                 else
                 {
                     var singleQuery = (UserEntity)context.Result;
-                    context.Result = singleQuery.ToGQLUser(id, vaultService);
+                    context.Result = singleQuery.ToGQLUser(id, payoutService, vaultService);
                     single = true;
                 }
             });
