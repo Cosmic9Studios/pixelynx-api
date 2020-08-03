@@ -43,6 +43,7 @@ using Npgsql;
 using Pixelynx.Logic;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using PayoutService = Pixelynx.Logic.Services.PayoutService;
 
 namespace Pixelynx.Api
 {
@@ -142,6 +143,7 @@ namespace Pixelynx.Api
             services.AddSingleton<UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<UploadService, UploadService>();
+            services.AddScoped<PayoutService, PayoutService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddSingleton<IPaymentService, PaymentService>();
 
