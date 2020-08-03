@@ -60,8 +60,11 @@ namespace Pixelynx.Logic.Services
                         StorageId = storageId,
                         MediaStorageBucket = storageSettings.MediaBucketName,
                         AssetType = (int)asset.Metadata.Type, 
+                        Background = asset.Metadata.Background,
                         FileHash = rawAssetData.GenerateHash(),
-                        Price = asset.Metadata.Price
+                        Price = asset.Metadata.Price,
+                        CreatedDate = DateTime.UtcNow,
+                        UpdatedDate = DateTime.UtcNow
                     };
                     await context.Assets.AddAsync(newAsset);
 
