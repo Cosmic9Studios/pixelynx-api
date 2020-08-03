@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
+using Newtonsoft.Json;
 using Pixelynx.Api.Extensions;
+using Pixelynx.Api.Models;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
 using Pixelynx.Data.Entities;
@@ -289,6 +291,13 @@ namespace Pixelynx.Api.Types
                     Data = "free"
                 };
             }
+            
+            var assetMetadata = context.Assets.Where(x => assetsToPurchase.Any(y => y == x.Id)).Select(a => new AssetMetadata
+            {
+                Id = a.Id,
+                OwnerId = a.UploaderId,
+                Cost = (int) a.Price,
+            }).ToList();
 
             var tax = total >= 20 ? 0 : 2;
             return new PurchaseResponse
@@ -298,7 +307,7 @@ namespace Pixelynx.Api.Types
                 {
                     {"type", "ASSETS"},
                     {"userId", userId.ToString()},
-                    {"assets", string.Join(',', assetsToPurchase)},
+                    {"assets", JsonConvert.SerializeObject(assetMetadata)},
                 })
             };
         }

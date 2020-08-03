@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,8 @@ using C9S.Configuration.HashicorpVault.Helpers;
 using Google.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Pixelynx.Api.Models;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
@@ -50,13 +53,13 @@ namespace Pixelynx.Api.Controllers
                     var type = paymentIntent.Metadata["type"];
                     if (type == "ASSETS")
                     {
-                        var assets = paymentIntent.Metadata["assets"].Split(',').Select(Guid.Parse);
+                        var assets = JsonConvert.DeserializeObject<List<AssetMetadata>>(paymentIntent.Metadata["assets"]);
                         if (!assets.Any())
                         {
                             return BadRequest();
                         }
 
-                        await unitOfWork.PaymentRepository.PurchaseAssets(userId, assets.ToList(), paymentIntent.Charges.Data[0].BalanceTransactionId);
+                        await unitOfWork.PaymentRepository.PurchaseAssets(userId, assets.Select(x => x.Id).ToList(), paymentIntent.Charges.Data[0].BalanceTransactionId);
                         using (var context = dbContextFactory.CreateReadWrite())
                         {
                             var cart = await context.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
