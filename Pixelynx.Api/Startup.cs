@@ -123,14 +123,14 @@ namespace Pixelynx.Api
             var context = dbContextFactory.CreateAdmin();
             
             context.Database.Migrate();
-
-            services.AddSession();
+            
+            /*services.AddSession();
             services.AddDistributedPostgreSqlCache(setup =>
             {
                 setup.SchemaName = "public";
                 setup.TableName = "session";
                 setup.ConnectionString = GetConnectionString(dbContextFactory);
-            });
+            }); */
 
             // Services
             services.AddHttpContextAccessor();
@@ -218,7 +218,7 @@ namespace Pixelynx.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseSession();
+            //app.UseSession();
             app.UseRouting();
 
             // Global cors policy

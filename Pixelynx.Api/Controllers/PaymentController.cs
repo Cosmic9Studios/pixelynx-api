@@ -30,14 +30,10 @@ namespace Pixelynx.Api.Controllers
     public class PaymentController : Controller
     {
         private UnitOfWork unitOfWork;
-        private IVaultService vaultService;
-        private IDistributedCache cache;
 
-        public PaymentController(UnitOfWork unitOfWork, IVaultService vaultService, IDistributedCache cache)
+        public PaymentController(UnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork;
-            this.vaultService = vaultService;
-            this.cache = cache;
         }
 
         [Route("token"), HttpGet, AllowAnonymous]
