@@ -12,6 +12,7 @@ namespace Pixelynx.Logic.Model
         public List<string> Tags { get; set; }
         public string Thumbnail { get; set; }
         public int Background { get; set; }
+        public int License { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         public Core.AssetType Type { get; set; }

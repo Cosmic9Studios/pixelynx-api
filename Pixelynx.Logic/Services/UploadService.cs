@@ -63,6 +63,7 @@ namespace Pixelynx.Logic.Services
                         Background = asset.Metadata.Background,
                         FileHash = rawAssetData.GenerateHash(),
                         Price = asset.Metadata.Price,
+                        License = (AssetLicense) asset.Metadata.License,
                         CreatedDate = DateTime.UtcNow,
                         UpdatedDate = DateTime.UtcNow
                     };

@@ -35,6 +35,7 @@ namespace Pixelynx.Api.Types
         public GQLUser Uploader { get; set; }
         public string Name { get; set; }
         public Core.AssetType Type { get; set; }
+        public AssetLicense License { get; set; }
         public int Cost { get; set; }
         public int Background { get; set; }
 
