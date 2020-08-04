@@ -5,6 +5,11 @@ using System.Linq;
 
 namespace Pixelynx.Data.Entities
 {
+    public enum AssetLicense
+    {
+        Standard = 0,
+        CC0 = 1,
+    }
     public class AssetEntity
     {
         public Guid Id { get; set; }
@@ -22,6 +27,7 @@ namespace Pixelynx.Data.Entities
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
         public List<AssetEntity> Children { get; set; }
+        public AssetLicense License { get; set; }
 
         [ForeignKey("ParentId")]
         public AssetEntity Parent { get; set; }

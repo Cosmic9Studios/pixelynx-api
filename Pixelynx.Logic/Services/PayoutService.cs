@@ -41,7 +41,7 @@ namespace Pixelynx.Logic.Services
             
             var service = new ChargeService();
             var userCharges = service.ListAutoPaging(options)
-                .Where(x => x.Metadata["assets"] != null)
+                .Where(x => x.Metadata["type"] == "ASSETS" && x.Metadata["assets"] != null)
                 .SelectMany(x =>
                 {
                     var assets = JArray.Parse(x.Metadata["assets"]);
