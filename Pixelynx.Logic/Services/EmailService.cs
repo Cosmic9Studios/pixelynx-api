@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
@@ -8,8 +8,9 @@ using MimeKit;
 using Pixelynx.Data.Interfaces;
 using Pixelynx.Logic.Interfaces;
 using Pixelynx.Logic.Settings;
-using SendGrid;
-using SendGrid.Helpers.Mail;
+using sib_api_v3_sdk.Api;
+using sib_api_v3_sdk.Client;
+using sib_api_v3_sdk.Model;
 
 namespace Pixelynx.Logic.Services
 {
@@ -32,35 +33,31 @@ namespace Pixelynx.Logic.Services
 
         public async Task SendEmailFromTemplateAsync(EmailTemplate template, string to, string subject, dynamic templateData)
         {
-            string templateId = "";
+            var apiKey = (await vaultService.GetAuthSecrets()).SendInBlueApiKey;
+            Configuration.Default.AddApiKey("api-key", apiKey);
+            var apiInstance = new SMTPApi();
+            long templateId = 1;
+            var sendEmail = new SendEmail(new List<string>{ to });
+            
             switch (template)
             {
                 case EmailTemplate.Registration:
-                    templateId = emailSettings.RegistrationTemplate;
+                    templateId = long.Parse(emailSettings.RegistrationTemplate);
                     break;
                 case EmailTemplate.ForgotPassword:
-                    templateId = emailSettings.ForgotPasswordTemplate;
+                    templateId = long.Parse(emailSettings.ForgotPasswordTemplate);
                     break;
             }
-
-            var client = new SendGridClient((await vaultService.GetAuthSecrets()).SendgridApiKey);
-            var message = new SendGridMessage
+            try
             {
-                TemplateId = templateId,
-                Subject = subject,
-                From = new EmailAddress
-                {
-                    Email = emailSettings.Sender
-                },
-            };
-
-            message.AddTo(new EmailAddress
+                // Send a template
+                SendTemplateEmail result = apiInstance.SendTemplate(templateId, sendEmail);
+                Debug.WriteLine(result);
+            }
+            catch (Exception e)
             {
-                Email = to,
-            });
-            message.SetTemplateData(templateData);
-            var resp = await client.SendEmailAsync(message);
-            Console.WriteLine(resp);
+                Debug.Print("Exception when calling SMTPApi.SendTemplate: " + e.Message );
+            }
         }
 
         public async Task SendEmailAsync(string to, string subject, string body)
