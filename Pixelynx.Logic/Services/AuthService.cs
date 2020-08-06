@@ -12,7 +12,9 @@ using Pixelynx.Data.Interfaces;
 using Pixelynx.Logic;
 using Pixelynx.Logic.Extensions;
 using Pixelynx.Logic.Interfaces;
+using Pixelynx.Logic.Model.Email;
 using Pixelynx.Logic.Models;
+using Pixelynx.Logic.Services;
 using Stripe;
 
 public class AuthService : IAuthService
@@ -105,10 +107,10 @@ public class AuthService : IAuthService
         var code = HttpUtility.UrlEncode(await userManager.GeneratePasswordResetTokenAsync(user));
         var confirmationUrl = user.GenerateConfirmationUrl(request, code, ConfirmationType.ResetPassword);
 
-        await emailService.SendEmailFromTemplateAsync(user.Email, "Pixelynx - Forgot Password", "ForgotPassword", new Dictionary<string, string> 
+        await emailService.SendEmailFromTemplateAsync(EmailTemplate.ForgotPassword, user.Email, "Pixelynx - Forgot Password", new RegistrationData
         {
-            ["Sender"] = user.FirstName,
-            ["Button_Url"] = confirmationUrl
+            Receipient = user.FirstName,
+            ButtonUrl = confirmationUrl
         });
 
         return true;
@@ -248,10 +250,10 @@ public class AuthService : IAuthService
     {
         var code = HttpUtility.UrlEncode(await userManager.GenerateEmailConfirmationTokenAsync(user));
         var confirmationUrl = user.GenerateConfirmationUrl(request, code, ConfirmationType.Account);
-        await emailService.SendEmailFromTemplateAsync(user.Email, "Pixelynx - Confirm your account", "Register", new Dictionary<string, string> 
+        await emailService.SendEmailFromTemplateAsync(EmailTemplate.Registration, user.Email, "Pixelynx - Confirm your account", new RegistrationData
         {
-            ["Sender"] = user.FirstName,
-            ["Button_Url"] = confirmationUrl
+            Receipient = user.FirstName,
+            ButtonUrl = confirmationUrl
         });
     }
     #endregion

@@ -6,5 +6,8 @@ namespace Pixelynx.Logic.Settings
         public int Port { get; set; }
         public string Username { get; set; }
         public string Sender { get; set; }
+
+        public string RegistrationTemplate { get; set; }
+        public string ForgotPasswordTemplate { get; set; }
     }
 }
