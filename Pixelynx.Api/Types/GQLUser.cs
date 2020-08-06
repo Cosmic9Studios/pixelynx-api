@@ -89,11 +89,16 @@ namespace Pixelynx.Api.Types
             string defaultPaymentId;
             using (var context = dbContextFactory.CreateRead())
             {
-                var paymentDetails =  await context.PaymentDetails.FirstAsync(x => x.UserId == userId);
-                customerId = paymentDetails.CustomerId;
-                defaultPaymentId = paymentDetails.DefaultPaymentMethodId;
+                var paymentDetails =  await context.PaymentDetails.FirstOrDefaultAsync(x => x.UserId == userId);
+                customerId = paymentDetails?.CustomerId;
+                defaultPaymentId = paymentDetails?.DefaultPaymentMethodId;
             }
 
+            if (customerId == null)
+            {
+                return new List<GQLCard>();
+            }
+            
             var options = new PaymentMethodListOptions
             {
                 Customer = customerId,

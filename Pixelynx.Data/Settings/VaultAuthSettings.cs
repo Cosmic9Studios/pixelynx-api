@@ -6,6 +6,7 @@ namespace Pixelynx.Data.Settings
         public string StripeSecretKey { get; set; }
         public string StripeEndpointSecret { get; set; }
         public string SendgridApiKey { get; set; }
+        public string SendInBlueApiKey { get; set; }
         public string Admins { get; set; }
     }
 }
