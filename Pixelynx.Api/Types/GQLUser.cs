@@ -49,11 +49,11 @@ namespace Pixelynx.Api.Types
         {
             bool isAdmin = false;
             var admins = (await vaultService.GetAuthSecrets()).Admins;
-                if (admins != null)
-                {
-                    isAdmin = admins.Split(";")
-                        .Any(x => Guid.Parse(x) == ctx.Parent<GQLUser>().Id);
-                }
+            if (admins != null)
+            {
+                isAdmin = admins.Split(";")
+                    .Any(x => Guid.TryParse(x, out var adminId) && adminId == ctx.Parent<GQLUser>().Id);
+            }
             
             return isAdmin;
         }
