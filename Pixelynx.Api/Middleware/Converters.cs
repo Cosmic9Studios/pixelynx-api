@@ -66,12 +66,12 @@ namespace Pixelynx.Api.Middleware
                 if(context.Result is IQueryable<object> query)
                 {
                     var queryable = query.Cast<UserEntity>();
-                    context.Result = queryable.ToGQLUser(id, payoutService, vaultService);
+                    context.Result = queryable.ToGQLUser(id);
                 }
                 else
                 {
                     var singleQuery = (UserEntity)context.Result;
-                    context.Result = singleQuery.ToGQLUser(id, payoutService, vaultService);
+                    context.Result = singleQuery.ToGQLUser(id);
                     single = true;
                 }
             });
