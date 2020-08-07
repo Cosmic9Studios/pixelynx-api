@@ -13,6 +13,8 @@ using Pixelynx.Api.Extensions;
 using Pixelynx.Api.Middleware;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
+using Pixelynx.Logic.Models;
+using Pixelynx.Logic.Services;
 using Stripe;
 
 namespace Pixelynx.Api.Types
@@ -21,6 +23,12 @@ namespace Pixelynx.Api.Types
     {
         public Guid? Id { get; set; }
         public string UserName { get; set; }
+    }
+
+    public class GQLUserBalance
+    {
+        public float TotalBalance { get; set; } = 0;
+        public float NextPayoutBalance { get; set; } = 0;
     }
 
     public class GQLUser
@@ -36,6 +44,35 @@ namespace Pixelynx.Api.Types
         public float NextPayoutBalance { get; set; }
         
         public bool IsAdmin { get; set; }
+
+        public async Task<bool> GetIsAdmin(IResolverContext ctx, [Service]IVaultService vaultService)
+        {
+            bool isAdmin = false;
+            var admins = (await vaultService.GetAuthSecrets()).Admins;
+                if (admins != null)
+                {
+                    isAdmin = admins.Split(";")
+                        .Any(x => Guid.Parse(x) == ctx.Parent<GQLUser>().Id);
+                }
+            
+            return isAdmin;
+        }
+
+        [Authorize]
+        public async Task<GQLUserBalance> GetUserBalance(IResolverContext ctx, [Service]Logic.Services.PayoutService payoutService)
+        {
+            var payoutBalance = new UserBalance();
+            if (payoutService != null)
+            {
+                payoutBalance = await payoutService.GetUserBalance(ctx.Parent<GQLUser>().Id);
+            }
+
+            return new GQLUserBalance 
+            {
+                TotalBalance = payoutBalance.TotalBalance,
+                NextPayoutBalance = payoutBalance.NextPayoutBalance
+            };
+        }
 
         [ToGQLAsset]
         [UsePagination]

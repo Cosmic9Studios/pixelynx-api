@@ -13,30 +13,13 @@ namespace Pixelynx.Api.Extensions
 {
     public static class UserExtensions
     {
-        public static IEnumerable<GQLUser> ToGQLUser(this IEnumerable<UserEntity> entity, Guid userId, PayoutService payoutService, IVaultService vaultService)
+        public static IEnumerable<GQLUser> ToGQLUser(this IEnumerable<UserEntity> entity, Guid userId)
         {
-            return entity.ToList().Select(user => user.ToGQLUser(userId, payoutService, vaultService));
+            return entity.ToList().Select(user => user.ToGQLUser(userId));
         }
 
-        public static GQLUser ToGQLUser(this UserEntity user, Guid userId, PayoutService payoutService = null, IVaultService vaultService = null)
+        public static GQLUser ToGQLUser(this UserEntity user, Guid userId)
         {
-            bool isAdmin = false;
-            if (vaultService != null)
-            {
-                var admins = AsyncHelper.RunSync(vaultService.GetAuthSecrets).Admins;
-                if (admins != null)
-                {
-                    isAdmin = admins.Split(";")
-                        .Any(x => Guid.Parse(x) == userId);
-                }
-            }
-            
-            var payoutBalance = new UserBalance();
-            if (payoutService != null)
-            {
-                payoutBalance = AsyncHelper.RunSync(() => payoutService.GetUserBalance(user.Id));
-            }
-
             return new GQLUser
             {
                 Id = user.Id,
@@ -45,9 +28,6 @@ namespace Pixelynx.Api.Extensions
                 LastName = user.LastName,
                 Email = userId == user.Id ? user.Email : null,
                 Credits = userId == user.Id ? (int?)user.Credits : null,
-                TotalBalance = userId == user.Id ? payoutBalance.TotalBalance : 0,
-                NextPayoutBalance = userId == user.Id ? payoutBalance.NextPayoutBalance : 0,
-                IsAdmin = isAdmin,
                 Me = user.Id == userId
             };
         }
