@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Pixelynx.Data.Interfaces;
 using Pixelynx.Logic.Interfaces;
+using Pixelynx.Logic.Model.Email;
 using Pixelynx.Logic.Settings;
 using sib_api_v3_sdk.Api;
 using sib_api_v3_sdk.Client;
@@ -31,27 +32,32 @@ namespace Pixelynx.Logic.Services
             this.vaultService = vaultService;
         }
 
-        public async Task SendEmailFromTemplateAsync(EmailTemplate template, string to, string subject, dynamic templateData)
+        public async Task SendEmailFromTemplateAsync(EmailTemplate template, string to, string subject, EmailData templateData)
         {
             var apiKey = (await vaultService.GetAuthSecrets()).SendInBlueApiKey;
             Configuration.Default.AddApiKey("api-key", apiKey);
             var apiInstance = new SMTPApi();
-            long templateId = 1;
-            var sendEmail = new SendEmail(new List<string>{ to });
-            
+           
+            var sendSmtpEmail = new SendSmtpEmail(
+                new SendSmtpEmailSender("Pixelynx", emailSettings.Sender),
+                new List<SendSmtpEmailTo>{new SendSmtpEmailTo(to, templateData.Receipient)}
+            );
+
+            sendSmtpEmail.Params = templateData;
             switch (template)
             {
                 case EmailTemplate.Registration:
-                    templateId = long.Parse(emailSettings.RegistrationTemplate);
+                    sendSmtpEmail.TemplateId = long.Parse(emailSettings.RegistrationTemplate);
                     break;
                 case EmailTemplate.ForgotPassword:
-                    templateId = long.Parse(emailSettings.ForgotPasswordTemplate);
+                    sendSmtpEmail.TemplateId = long.Parse(emailSettings.ForgotPasswordTemplate);
                     break;
             }
             try
             {
                 // Send a template
-                SendTemplateEmail result = apiInstance.SendTemplate(templateId, sendEmail);
+                // SendTemplateEmail result = apiInstance.SendTemplate(templateId, sendEmail);
+                var result = apiInstance.SendTransacEmail(sendSmtpEmail);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
