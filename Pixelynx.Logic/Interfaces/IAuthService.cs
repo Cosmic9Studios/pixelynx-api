@@ -4,7 +4,7 @@ using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 using Pixelynx.Logic.Models;
 
-namespace Pixelynx.Logic
+namespace Pixelynx.Logic.Interfaces
 {
     public interface IAuthService
     {
