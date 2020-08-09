@@ -150,6 +150,7 @@ namespace Pixelynx.Api.Types
         public async Task<bool> AddToCart(
             [Service] IDbContextFactory dbContextFactory, 
             [Service] IHttpContextAccessor contextAccessor, 
+            [Service] IAssetService assetService,
             List<Guid> assetIds)
         {
             var dbContext = dbContextFactory.CreateReadWrite();
@@ -180,7 +181,8 @@ namespace Pixelynx.Api.Types
                 }
 
                 var isItemInCart = await dbContext.CartItems.AnyAsync(x => x.CartId == cart.Id && x.AssetId == assetId);
-                if (!isItemInCart)
+                var owned = assetService.IsOwned(userId, assetId);
+                if (!isItemInCart && !owned)
                 {
                     await dbContext.CartItems.AddAsync(new CartItemEntity
                     {
