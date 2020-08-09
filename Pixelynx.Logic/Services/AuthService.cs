@@ -52,7 +52,7 @@ public class AuthService : IAuthService
             user = await userManager.FindByNameAsync(email);
             if (user == null || !user.EmailConfirmed) 
             {
-                return null;
+                return "NotConfirmed";
             }
         }
 

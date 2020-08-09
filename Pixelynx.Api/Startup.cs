@@ -145,6 +145,7 @@ namespace Pixelynx.Api
             services.AddScoped<UploadService, UploadService>();
             services.AddScoped<PayoutService, PayoutService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IAssetService, AssetService>();
             services.AddSingleton<IPaymentService, PaymentService>();
 
             // On Migration
