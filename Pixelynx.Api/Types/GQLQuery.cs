@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate;
@@ -7,11 +6,10 @@ using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using MoreLinq;
 using Pixelynx.Api.Middleware;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
-using Stripe;
+using Pixelynx.Logic.Interfaces;
 
 namespace Pixelynx.Api.Types
 {
@@ -23,12 +21,14 @@ namespace Pixelynx.Api.Types
         [UsePagination]
         [AssetFilter]
         public IQueryable<AssetEntity> GetAssets(
-            [Service]IDbContextFactory context, 
+            [Service] IDbContextFactory context,
             GQLAssetFilter where, int? offset, int? limit) =>
             context.CreateRead().Assets
                 .Include(x => x.Parent)
+                .ThenInclude(x => x.Uploader)
                 .Include(x => x.Uploader)
-                .Include(x => x.Children);
+                .Include(x => x.Children)
+                .ThenInclude(x => x.Uploader);
            
         [ToGQLUser]
         [UsePagination]
@@ -49,15 +49,13 @@ namespace Pixelynx.Api.Types
         [ToGQLAsset]
         public async Task<IQueryable<AssetEntity>> GetCartItems(
             [Service] IDbContextFactory context, 
+            [Service] ICartService cartService,
             [Service]IHttpContextAccessor contextAccessor)
         {
             Guid.TryParse(contextAccessor.HttpContext.User.Identity.Name, out var userId);
-            var dbContext = context.CreateRead();
-            var cart = await dbContext.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
-                .OrderByDescending(x => x.UpdatedDate).FirstOrDefaultAsync();
-            return cart == null ? 
-                new List<AssetEntity>().AsQueryable() : 
-                dbContext.CartItems.Include(x => x.Asset).Where(x => x.CartId == cart.Id).Select(x => x.Asset);
+
+            var cartItems = await cartService.GetCartItems(userId);
+            return cartItems.Select(x => x.Asset).AsQueryable();
         }
     }
 }
