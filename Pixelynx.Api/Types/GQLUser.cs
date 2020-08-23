@@ -59,12 +59,12 @@ namespace Pixelynx.Api.Types
         }
 
         [Authorize]
-        public async Task<GQLUserBalance> GetUserBalance(IResolverContext ctx, [Service]Logic.Services.PayoutService payoutService)
+        public GQLUserBalance GetUserBalance(IResolverContext ctx, [Service]Logic.Services.PayoutService payoutService)
         {
             var payoutBalance = new UserBalance();
             if (payoutService != null)
             {
-                payoutBalance = await payoutService.GetUserBalance(ctx.Parent<GQLUser>().Id);
+                payoutBalance = payoutService.GetUserBalance(ctx.Parent<GQLUser>().Id);
             }
 
             return new GQLUserBalance 
