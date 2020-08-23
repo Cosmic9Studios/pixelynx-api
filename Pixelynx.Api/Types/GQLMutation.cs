@@ -28,7 +28,7 @@ namespace Pixelynx.Api.Types
         
 
         [Authorize]
-        public async Task<bool> Logout([Service] IAuthService authService) => authService.Logout();
+        public bool Logout([Service] IAuthService authService) => authService.Logout();
 
         public async Task<GenericResult<string>> Register(
             [Service] IAuthService authService, 
