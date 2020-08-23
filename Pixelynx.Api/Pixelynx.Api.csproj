@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
+  
 
   <ItemGroup>
     <PackageReference Include="C9S.Configuration.Variables" Version="1.0.0" />
@@ -14,17 +15,20 @@
     <PackageReference Include="Community.Microsoft.Extensions.Caching.PostgreSql" Version="1.0.30" />
     <PackageReference Include="glTF2Loader" Version="1.1.3-alpha" />
     <PackageReference Include="Google.Cloud.Kms.V1" Version="1.0.0" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="10.4.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="10.4.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.4.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.4.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.4.0" />
-    <PackageReference Include="HotChocolate.Types.Filters" Version="10.4.0" />
-    <PackageReference Include="HotChocolate.Types.Selections" Version="10.4.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.AspNetCore.Subscriptions" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.Types.Filters" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.Types.Selections" Version="10.5.2" />
+    <PackageReference Include="HotChocolate.Subscriptions.Redis" Version="10.5.2" />
     <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="3.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.0.0">
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -41,5 +45,17 @@
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Update="localhost.pfx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+    <!--
+    System.Interactive.Async contains IAsyncEnumerable<T> that conflicts with .NET Core version
+    Give assembly an alias so .NET Core version can be referenced in C#
+  -->
+  <Target Name="ChangeAliasesOfReactiveExtensions" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'System.Interactive.Async'">
+        <Aliases>ix</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
 
 </Project>
