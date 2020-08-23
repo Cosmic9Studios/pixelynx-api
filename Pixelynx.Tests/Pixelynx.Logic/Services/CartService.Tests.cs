@@ -86,7 +86,7 @@ namespace Pixelynx.Tests.Pixelynx.Logic.Services
         public async Task ShouldCreateNewCart_AfterClose()
         {
             await cartService.AddToCart(user.Id, new List<Guid> { assets[1].Id });
-            await cartService.CloseCart(user.Id, CartStatus.Complete);
+            await cartService.UpdateCartStatus(user.Id, CartStatus.Complete);
             await cartService.AddToCart(user.Id, new List<Guid> { assets[1].Id });
 
             await using var dbContext = dbContextFactory.CreateRead();
