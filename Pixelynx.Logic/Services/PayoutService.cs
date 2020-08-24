@@ -16,7 +16,7 @@ namespace Pixelynx.Logic.Services
             this.dbContextFactory = dbContextFactory;
         }
         
-        public async Task<UserBalance> GetUserBalance(Guid userId)
+        public UserBalance GetUserBalance(Guid userId)
         {
             var currentDay = DateTime.UtcNow.Day;
             var currentMonth = DateTime.UtcNow.Month;

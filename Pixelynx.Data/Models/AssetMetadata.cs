@@ -1,6 +1,6 @@
 using System;
 
-namespace Pixelynx.Api.Models
+namespace Pixelynx.Logic.Models
 {
     public class AssetMetadata
     {

@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.Sqlite;
+using Pixelynx.Data;
 using Pixelynx.Data.BlobStorage;
+using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
 
 namespace Pixelynx.Tests.Factories
@@ -18,6 +21,17 @@ namespace Pixelynx.Tests.Factories
         {
             var dbContextFactory = new InMemoryDbContextFactory();
             return new UnitOfWork(dbContextFactory);
+        }
+
+        public static IDbContextFactory GetInMemoryDbContext()
+        {
+            return new InMemoryDbContextFactory();
+        }
+
+        public static IDbContextFactory GetSqlLiteDbContext()
+        {
+            var connection = new SqliteConnection("DataSource=:memory:");
+            return new SqliteDbContextFactory(connection);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Pixelynx.Logic.Interfaces
     public interface IAuthService
     {
         Task<string> Login(string email, string password, string jwtSecret);
-        Task<bool> Logout();
+        bool Logout();
         Task<GenericResult<string>> Register(HttpRequest request, UserEntity newUser, string password);
         Task<GenericResult<string>> ConfirmEmail(IDbContextFactory dbContextFactory,
             string userId, string code, string type);

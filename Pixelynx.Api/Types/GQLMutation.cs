@@ -5,17 +5,13 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MoreLinq;
 using Newtonsoft.Json;
 using Pixelynx.Api.Extensions;
-using Pixelynx.Api.Models;
 using Pixelynx.Api.Requests;
 using Pixelynx.Api.Responses;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
-using Pixelynx.Logic;
 using Pixelynx.Logic.Interfaces;
 using Pixelynx.Logic.Models;
 using Stripe;
@@ -27,15 +23,12 @@ namespace Pixelynx.Api.Types
         public async Task<string> Login(
             [Service] IAuthService authService, 
             [Service] IVaultService vaultService,
-            string email, string password)
-        {
-            var authSettings = await vaultService.GetAuthSecrets();
-            return await authService.Login(email, password, (await vaultService.GetAuthSecrets()).JWTSecret);
-        }
+            string email, string password) => 
+                await authService.Login(email, password, (await vaultService.GetAuthSecrets()).JWTSecret);
+        
 
         [Authorize]
-        public async Task<bool> Logout([Service] IAuthService authService) => 
-            await authService.Logout();
+        public bool Logout([Service] IAuthService authService) => authService.Logout();
 
         public async Task<GenericResult<string>> Register(
             [Service] IAuthService authService, 
@@ -128,7 +121,7 @@ namespace Pixelynx.Api.Types
         }
         
         [Authorize]
-        public async Task<IEnumerable<GQLAsset>> Download(IReadOnlyList<Guid> assetIds, 
+        public IEnumerable<GQLAsset> Download(IReadOnlyList<Guid> assetIds, 
             [Service] IDbContextFactory dbContextFactory,
             [Service] IHttpContextAccessor contextAccessor)
         {
@@ -147,73 +140,42 @@ namespace Pixelynx.Api.Types
         }
 
         [Authorize]
-        public async Task<bool> AddToCart(
-            [Service] IDbContextFactory dbContextFactory, 
+        public async Task<GenericResult> AddToCart(
             [Service] IHttpContextAccessor contextAccessor, 
-            [Service] IAssetService assetService,
-            List<Guid> assetIds)
+            [Service] ICartService cartService,
+            IReadOnlyList<Guid> assetIds)
         {
-            var dbContext = dbContextFactory.CreateReadWrite();
-            foreach (var assetId in assetIds)
+            var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
+            await cartService.AddToCart(userId, assetIds);
+            return new GenericResult
             {
-                var asset = await dbContext.Assets.FirstOrDefaultAsync(x => x.Id == assetId);
-                if (asset == null)
-                {
-                    throw new InvalidOperationException($"Unable to find asset with id {assetId}");
-                }
-
-                var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
-                var cart = await dbContext.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
-                                .OrderByDescending(x => x.UpdatedDate).FirstOrDefaultAsync();
-                
-                if (cart == null)
-                {
-                    cart = new CartEntity
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = userId,
-                        Status = CartStatus.New,
-                        CreatedDate = DateTime.UtcNow,
-                        UpdatedDate = DateTime.UtcNow,
-                    };
-                    await dbContext.Carts.AddAsync(cart);
-                    await dbContext.SaveChangesAsync();
-                }
-
-                var isItemInCart = await dbContext.CartItems.AnyAsync(x => x.CartId == cart.Id && x.AssetId == assetId);
-                var owned = assetService.IsOwned(userId, assetId);
-                if (!isItemInCart && !owned)
-                {
-                    await dbContext.CartItems.AddAsync(new CartItemEntity
-                    {
-                        AssetId = assetId,
-                        CartId = cart.Id,
-                        CreatedDate = DateTime.UtcNow,
-                    });
-                    await dbContext.SaveChangesAsync();
-                }
-            }
-
-            return true;
+                Succeeded = true
+            };
         }
 
         [Authorize]
-        public async Task<bool> RemoveFromCart(
-            [Service] IDbContextFactory dbContextFactory,
+        public async Task<GenericResult> RemoveFromCart(
+            [Service] ICartService cartService,
             [Service] IHttpContextAccessor contextAccessor,
-            List<Guid> assetIds)
+            IReadOnlyList<Guid> assetIds)
         {
-            var dbContext = dbContextFactory.CreateReadWrite();
             var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
-            var cart = await dbContext.Carts.FirstOrDefaultAsync(x => x.UserId == userId);
-            var assetsToRemove = dbContext.CartItems.Where(x =>
-                x.CartId == cart.Id && assetIds.Any(aId => aId == x.AssetId)).ToList();
-            
-            dbContext.CartItems.RemoveRange(assetsToRemove);
-            await dbContext.SaveChangesAsync();
-
-            return true;
+            await cartService.RemoveFromCart(userId, assetIds);
+            return new GenericResult
+            {
+                Succeeded = true
+            };
         }
+
+        [Authorize]
+        public async Task CloseCart(
+            [Service] ICartService cartService,
+            [Service] IHttpContextAccessor contextAccessor)
+        {
+            var userId = Guid.Parse(contextAccessor.HttpContext.User.Identity.Name);
+            await cartService.UpdateCartStatus(userId, CartStatus.Complete);
+        }
+        
 
         [Authorize]
         public async Task<string> AddCredits(
@@ -237,81 +199,35 @@ namespace Pixelynx.Api.Types
         [Authorize]
         public async Task<PurchaseResponse> PurchaseAssets(
             [Service] IPaymentService paymentService,
-            [Service] IDbContextFactory dbContextFactory,
+            [Service] ICartService cartService,
             [Service] IHttpContextAccessor contextAccessor, bool? useCredits)
         {
             if (!Guid.TryParse(contextAccessor.HttpContext.User.Identity.Name, out var userId))
             {
                 return null;
             }
-            
-            var context = dbContextFactory.CreateReadWrite();
-            var cart = await context.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
-                .OrderByDescending(x => x.UpdatedDate).FirstOrDefaultAsync();
-            if (cart == null)
+
+            var result = await cartService.Checkout(userId, useCredits.HasValue && useCredits.Value);
+            var response = new PurchaseResponse
             {
-                return null;
-            }
-
-            var assetsToPurchase = context.CartItems
-                .Include(x => x.Asset)
-                .Where(x => x.CartId == cart.Id)
-                .Select(x => x.Asset.Id);
-            
-            var user = context.Users.First(x => x.Id == userId);
-            var total = assetsToPurchase.Sum(id => context.Assets.First(x => x.Id == id).Price);
-
-            if (total == 0 || useCredits != null && useCredits.Value == true)
-            {
-                var credits = user.Credits;
-                if (credits < total) 
-                {
-                    return new PurchaseResponse
-                    {
-                        Succeeded = false,
-                        Error = "Insufficient Credits"
-                    };
-                }
- 
-                user.Credits -= (int)total;
-                context.Users.Update(user);
-                assetsToPurchase.ForEach(async id => {
-                    await context.PurchasedAssets.AddAsync(new PurchasedAssetEntity
-                    {
-                        AssetId = id,
-                        UserId = userId,
-                        TransactionId = $"cred_${total}_${Guid.NewGuid().ToString()}",
-                        Date = DateTime.UtcNow
-                    });
-                });
-
-                await context.SaveChangesAsync();
-
-                return new PurchaseResponse
-                {
-                    Succeeded = true,
-                    Data = "free"
-                };
-            }
-            
-            var assetMetadata = context.Assets.Where(x => assetsToPurchase.Any(y => y == x.Id)).Select(a => new AssetMetadata
-            {
-                Id = a.Id,
-                OwnerId = a.UploaderId,
-                Cost = (int) a.Price,
-            }).ToList();
-
-            var tax = total >= 20 ? 0 : 2;
-            return new PurchaseResponse
-            {
-                Succeeded = true,
-                Data = await paymentService.CreatePaymentIntent(userId, (int) total + tax, new Dictionary<string, string>
-                {
-                    {"type", "ASSETS"},
-                    {"userId", userId.ToString()},
-                    {"assets", JsonConvert.SerializeObject(assetMetadata)},
-                })
+                Succeeded = result.Succeeded,
+                Error = result.Error,
             };
+
+            if (string.IsNullOrEmpty(result.Error))
+            {
+                response.Data = result.Total == 0
+                    ? "free"
+                    : await paymentService.CreatePaymentIntent(userId, (int) result.Total,
+                        new Dictionary<string, string>
+                        {
+                            {"type", "ASSETS"},
+                            {"userId", userId.ToString()},
+                            {"assets", JsonConvert.SerializeObject(result.AssetMetadata)},
+                        });
+            }
+
+            return response;
         }
     }
 }

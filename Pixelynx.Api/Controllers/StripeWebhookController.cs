@@ -4,14 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using C9S.Configuration.HashicorpVault.Helpers;
-using Google.Api;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Pixelynx.Api.Models;
+using Pixelynx.Logic.Models;
 using Pixelynx.Data.Entities;
 using Pixelynx.Data.Interfaces;
 using Pixelynx.Data.Models;
+using Pixelynx.Logic.Interfaces;
 using Stripe;
 
 namespace Pixelynx.Api.Controllers
@@ -21,14 +22,19 @@ namespace Pixelynx.Api.Controllers
     {
         private UnitOfWork unitOfWork;
         private static string endpointSecret;
-        private IVaultService vaultService;
-        private IDbContextFactory dbContextFactory;
+        private readonly IVaultService vaultService;
+        private readonly IDbContextFactory dbContextFactory;
+        private readonly ICartService cartService;
         
-        public StripeWebhookController(UnitOfWork unitOfWork, IVaultService vaultService, IDbContextFactory dbContextFactory)
+        public StripeWebhookController(UnitOfWork unitOfWork, 
+            IVaultService vaultService, 
+            IDbContextFactory dbContextFactory,
+            ICartService cartService)
         {
             this.unitOfWork = unitOfWork;
             this.vaultService = vaultService;
             this.dbContextFactory = dbContextFactory;
+            this.cartService = cartService;
             if (string.IsNullOrEmpty(endpointSecret)) 
             {
                 endpointSecret = AsyncHelper.RunSync(vaultService.GetAuthSecrets).StripeEndpointSecret;
@@ -60,15 +66,7 @@ namespace Pixelynx.Api.Controllers
                         }
 
                         await unitOfWork.PaymentRepository.PurchaseAssets(userId, assets.Select(x => x.Id).ToList(), paymentIntent.Charges.Data[0].BalanceTransactionId);
-                        using (var context = dbContextFactory.CreateReadWrite())
-                        {
-                            var cart = await context.Carts.Where(x => x.UserId == userId && x.Status == CartStatus.New)
-                                .OrderByDescending(x => x.UpdatedDate).FirstOrDefaultAsync();
-
-                            cart.Status = CartStatus.Complete;
-                            context.Carts.Update(cart);
-                            await context.SaveChangesAsync();
-                        }
+                        await cartService.UpdateCartStatus(userId, CartStatus.Complete);
                     }
                     else if (type == "CREDITS")
                     {

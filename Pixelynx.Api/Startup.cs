@@ -147,6 +147,7 @@ namespace Pixelynx.Api
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IAssetService, AssetService>();
             services.AddSingleton<IPaymentService, PaymentService>();
+            services.AddScoped<ICartService, CartService>();
 
             // On Migration
             // services.AddDbContext<PixelynxContext>(options => dbContextFactory.CreateAdmin());

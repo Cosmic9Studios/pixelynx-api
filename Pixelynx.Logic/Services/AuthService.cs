@@ -67,9 +67,8 @@ public class AuthService : IAuthService
         return null;
     }
 
-    public async Task<bool> Logout() 
+    public bool Logout() 
     {
-        // await signInManager.SignOutAsync();
         return true;
     }
 

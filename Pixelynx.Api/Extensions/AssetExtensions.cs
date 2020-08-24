@@ -22,7 +22,7 @@ namespace Pixelynx.Api.Extensions
                 Type = (Core.AssetType)asset.AssetType,
                 Cost = (int)asset.Price,
                 Uploader = asset.Uploader?.ToGQLUser(Guid.Empty),
-                ParentId = asset.Parent == null ? null : (Guid?)asset.Parent.Id,
+                ParentId = asset.Parent?.Id,
                 StorageId = asset.StorageId,
                 StorageBuckets = new KeyValuePair<string, string>(asset.StorageBucket, asset.MediaStorageBucket),
                 Parent = asset.Parent?.ToGQLAsset(),

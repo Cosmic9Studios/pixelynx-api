@@ -7,15 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Pixelynx.Api.Models;
 using Pixelynx.Data.Interfaces;
+using Pixelynx.Logic.Models;
 using Stripe;
-using Stripe.Issuing;
 
 namespace Pixelynx.Api.Controllers
 {
     [Route("admin"), Authorize]
     public class AdminController : Controller
     {
-        private IVaultService vaultService;
+        private readonly IVaultService vaultService;
 
         public AdminController(IVaultService vaultService)
         {
