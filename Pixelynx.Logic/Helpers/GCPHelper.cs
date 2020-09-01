@@ -37,20 +37,10 @@ namespace Pixelynx.Logic.Helpers
             }
         }
 
-        public static async Task<UrlSigner> GetUrlSigner()
+        public static async Task<UrlSigner> GetUrlSigner(string serviceAccountId)
         {
             using (var httpClient = new HttpClient())
             {
-                HttpRequestMessage serviceAccountRequest = new HttpRequestMessage
-                {
-                    RequestUri = new Uri("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email"),
-                    Headers = { { "Metadata-Flavor", "Google" } }
-                };
-
-                HttpResponseMessage serviceAccountResponse = await httpClient.SendAsync(serviceAccountRequest).ConfigureAwait(false);
-                serviceAccountResponse.EnsureSuccessStatusCode();
-                string serviceAccountId = await serviceAccountResponse.Content.ReadAsStringAsync();
-
                 // Create an IAM service client object using the default application credentials.
                 GoogleCredential iamCredential = await GoogleCredential.GetApplicationDefaultAsync();
                 iamCredential = iamCredential.CreateScoped(IamService.Scope.CloudPlatform);

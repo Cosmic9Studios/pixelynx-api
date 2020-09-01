@@ -106,7 +106,7 @@ namespace Pixelynx.Api
             }
             else
             { 
-                var urlSigner = AsyncHelper.RunSync(GCPHelper.GetUrlSigner);
+                var urlSigner = AsyncHelper.RunSync(() => GCPHelper.GetUrlSigner(Configuration.GetSection("GCP:ServiceAccount").Get<string>()));
                 services.AddSingleton<UrlSigner>(urlSigner);
                 services.AddSingleton<IBlobStorage>(new GCStorage(urlSigner));
                 authMethod = new GoogleCloudAuthMethodInfo("my-iam-role", AsyncHelper.RunSync(GCPHelper.GetJwt));
