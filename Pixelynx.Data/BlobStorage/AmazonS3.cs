@@ -33,23 +33,23 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Public methods.
-        public async Task<BlobObject> GetObject(string bucket, string objectPath, bool signUrl = false)
+        public async Task<BlobObject> GetObject(string bucket, string objectPath)
         {
             var obj = await client.GetObjectAsync(bucket, objectPath);
             return new BlobObject
             {
                 Key = objectPath,
-                Uri = signUrl ? client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest
+                Uri = client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest
                 {
                     BucketName = bucket,
                     Key = obj.Key,
                     Expires = DateTime.UtcNow.AddMinutes(5),
                     Protocol = Protocol.HTTP
-                }) : $"{client.Config.ServiceURL}/{bucket}/{obj.Key}"
+                })
             };
         }
 
-        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "", bool signUrls = false)
+        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "")
         {
             var objectList = new List<BlobObject>();
             var listObjectsResponse = await client.ListObjectsAsync(bucket, directory);
@@ -58,13 +58,13 @@ namespace Pixelynx.Data.BlobStorage
                 objectList.Add(new BlobObject
                 {
                     Key = obj.Key,
-                    Uri = signUrls ? client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest
+                    Uri = client.GetPreSignedURL(new Amazon.S3.Model.GetPreSignedUrlRequest
                     {
                         BucketName = bucket,
                         Key = obj.Key,
                         Expires = DateTime.UtcNow.AddMinutes(5),
                         Protocol = Protocol.HTTP
-                    }) : $"{client.Config.ServiceURL}/{bucket}/{obj.Key}"
+                    })
                 });
             }
 

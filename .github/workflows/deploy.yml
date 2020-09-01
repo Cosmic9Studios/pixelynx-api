@@ -6,44 +6,77 @@ jobs:
     if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'staging'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: volcano-coffee-company/setup-terraform@v1
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+    
+    - name: Deploy service to Cloud Run
+      uses: stefda/action-cloud-run@v1.0
       with:
-        version: '0.12.26'
+        image: gcr.io/pixelynx-staging/pixelynx-api:${{ steps.get_version.outputs.VERSION }}
+        service: pixelynx-api
+        project: pixelynx-staging
+        region: us-central1
+        service key: ${{ secrets.GCP_SERVICE_KEY_STAGING }}
+    
+    - name: Update deployment status (success)
+      if: success()
+      uses: chrnorm/deployment-status@releases/v1
+      with:
+        token: "${{ secrets.GITHUB_TOKEN }}"
+        target_url: https://staging.pixelynx.com
+        state: "success"
+        deployment_id: ${{ github.run_id }}
 
-    - name: Add GPG
-      run: | 
-        sudo apt-get update
-        sudo apt-get install -y gnupg2
-
-    - name: Deploy Staging
-      env:
-        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
-      run: |
-        cd _deployment
-        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./staging/pixelynx-staging.json.gpg
-        ./deploy.sh Staging
+    - name: Update deployment status (failure)
+      if: failure()
+      uses: chrnorm/deployment-status@releases/v1
+      with:
+        token: "${{ secrets.GITHUB_TOKEN }}"
+        target_url: https://staging.pixelynx.com
+        state: "failure"
+        deployment_id: ${{ github.run_id }}
   
   deploy_production:
     if: contains(github.ref, 'refs/tags') && github.event.deployment.environment == 'production'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: volcano-coffee-company/setup-terraform@v1
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+    - name: Create GitHub deployment
+      uses: chrnorm/deployment-action@releases/v1
+      id: deployment
       with:
-        version: '0.12.26'
-
-    - name: Add GPG
-      run: | 
-        sudo apt-get update
-        sudo apt-get install -y gnupg2
-
-    - name: Deploy Production
-      env:
-        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
-      run: |
-        cd _deployment
-        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./production/pixelynx.json.gpg
-        ./deploy.sh Production
+        token: "${{ secrets.GITHUB_TOKEN }}"
+        target_url: https://pixelynx.com
+        environment: production
+  
+    - name: Deploy service to Cloud Run
+      uses: stefda/action-cloud-run@v1.0
+      with:
+        image: gcr.io/pixelynx-staging/pixelynx:${{ steps.get_version.outputs.VERSION }}
+        service: pixelynx-api
+        project: pixelynx
+        region: us-central1
+        service key: ${{ secrets.GCP_SERVICE_KEY_STAGING }}
+      
+    - name: Update deployment status (success)
+      if: success()
+      uses: chrnorm/deployment-status@releases/v1
+      with:
+        token: "${{ secrets.GITHUB_TOKEN }}"
+        target_url: https://pixelynx.com
+        state: "success"
+        deployment_id: ${{ github.run_id }}
+  
+    - name: Update deployment status (failure)
+      if: failure()
+      uses: chrnorm/deployment-status@releases/v1
+      with:
+        token: "${{ secrets.GITHUB_TOKEN }}"
+        target_url: https://pixelynx.com
+        state: "failure"
+        deployment_id: ${{ github.run_id }}
+        

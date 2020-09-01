@@ -1,28 +1,38 @@
-name: Release
+name: Tag Deploy
 on:
   push:
     tags:
     - '*'
 
 jobs:
-  release:
-    runs-on: ubuntu-16.04
+  deploy_staging_tag:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - uses: volcano-coffee-company/setup-terraform@v1
+
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+    - name: Push Docker Image
+      uses: RafikFarhad/push-to-gcr-github-action@v3
       with:
-        version: '0.12.26'
+        gcloud_service_key: ${{ secrets.GCP_SERVICE_KEY_STAGING }}
+        registry: gcr.io
+        project_id: pixelynx-staging
+        image_name: pixelynx
+        image_tag: latest,${{ steps.get_version.outputs.VERSION }}
+    
+    - name: Deploy service to Cloud Run
+      if: success()
+      uses: stefda/action-cloud-run@v1.0
+      with:
+        image: gcr.io/pixelynx-staging/pixelynx:${{ steps.get_version.outputs.VERSION }}
+        service: pixelynx-api
+        project: pixelynx-staging
+        region: us-central1
+        service key: ${{ secrets.GCP_SERVICE_KEY_STAGING }}
+    
 
-    - name: Add GPG
-      run: | 
-        sudo apt-get update
-        sudo apt-get install -y gnupg2
-
-    - name: Release
-      env:
-        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        GOOGLE_APPLICATION_CREDENTIALS: "./pixelynx.json"
-      run: |
-        cd _deployment
-        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.ACCOUNT_JSON_CREDENTIALS }}" --output $GOOGLE_APPLICATION_CREDENTIALS ./staging/pixelynx-staging.json.gpg
-        ./deploy.sh Staging
+  
+        

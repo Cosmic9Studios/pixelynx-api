@@ -1,48 +1,31 @@
 name: build
 on:
-  push:
-    branches:
-      - '*'
-      - '*/*'
+    push:
+        branches:
+            - "*"
+            - "*/*"
 
 jobs:
-  build_and_push:
-    runs-on: ubuntu-16.04
-    steps:
-    - uses: actions/checkout@v1
+    build_and_push:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
 
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '3.1.x'
+            - name: Test
+              if: github.ref != 'refs/heads/master'
+              run: |
+                dotnet test
 
-    - name: Test
-      run: dotnet test
+            - name: Build
+              if: github.ref != 'refs/heads/master'
+              env:
+                  CONTAINER_RELEASE_IMAGE: phenry20/pixelynx
+              run: |
+                  docker build -t $CONTAINER_RELEASE_IMAGE:latest .
 
-    - name: Build
-      env:
-        CONTAINER_RELEASE_IMAGE: phenry20/pixelynx
-      run: |
-        docker build -t $CONTAINER_RELEASE_IMAGE:latest-api .
-    
-    - name: Use Node
-      uses: actions/setup-node@v1
-      with:
-        node-version: '10.x'
-    
-    - name: Semantic Release
-      if: github.ref == 'refs/heads/master'
-      uses: codfish/semantic-release-action@master
-      id: semantic
-      env:
-        GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
-    
-    - name: Push Docker Image
-      if: steps.semantic.outputs.new-release-published == 'true'
-      env:
-        CONTAINER_RELEASE_IMAGE: phenry20/pixelynx
-      run: |
-        echo ${{ secrets.DOCKER_TOKEN }} | docker login --username "phenry20" --password-stdin
-        docker tag $CONTAINER_RELEASE_IMAGE:latest-api $CONTAINER_RELEASE_IMAGE:api-v$RELEASE_VERSION
-        docker push $CONTAINER_RELEASE_IMAGE:api-v$RELEASE_VERSION
-        docker push $CONTAINER_RELEASE_IMAGE:latest-api
+            - name: Semantic Release
+              if: github.ref == 'refs/heads/master'
+              uses: codfish/semantic-release-action@v1
+              id: semantic
+              env:
+                  GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
