@@ -20,14 +20,14 @@ jobs:
         gcloud_service_key: ${{ secrets.GCP_SERVICE_KEY_STAGING }}
         registry: gcr.io
         project_id: pixelynx-staging
-        image_name: pixelynx
+        image_name: pixelynx-api
         image_tag: latest,${{ steps.get_version.outputs.VERSION }}
     
     - name: Deploy service to Cloud Run
       if: success()
       uses: stefda/action-cloud-run@v1.0
       with:
-        image: gcr.io/pixelynx-staging/pixelynx:${{ steps.get_version.outputs.VERSION }}
+        image: gcr.io/pixelynx-staging/pixelynx-api:${{ steps.get_version.outputs.VERSION }}
         service: pixelynx-api
         project: pixelynx-staging
         region: us-central1
