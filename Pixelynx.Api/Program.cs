@@ -33,7 +33,8 @@ namespace Pixelynx.Api
                 })
                 .UseKestrel(options =>
                 {   
-                    options.Listen(IPAddress.Any, 5000, listenOptions => {
+                    string port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+                    options.Listen(IPAddress.Any, int.Parse(port), listenOptions => {
                         if (hostingEnvironment.EnvironmentName == "Development") {
                             listenOptions.UseHttps("localhost.pfx", "1234");
                         }

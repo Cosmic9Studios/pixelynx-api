@@ -7,6 +7,7 @@ RUN dotnet publish -o ./publish
 FROM dotnet-sdk
 
 COPY --from=0 /tempApp/Pixelynx.Api/publish /app
+ENV ASPNETCORE_ENVIRONMENT Production
 WORKDIR /app
 CMD [ "dotnet", "Pixelynx.Api.dll" ]
 
