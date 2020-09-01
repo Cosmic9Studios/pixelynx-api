@@ -54,13 +54,13 @@ namespace Pixelynx.Api.Types
 
         public async Task<string> GetUri(IResolverContext ctx, [Service] IBlobStorage blobStorage)
         {
-            return (await blobStorage.GetObject(StorageBuckets.Key, $"{StorageId.ToString()}/asset.glb", true)).Uri;
+            return (await blobStorage.GetObject(StorageBuckets.Key, $"{StorageId.ToString()}/asset.glb")).Uri;
         }
 
         public async Task<string> GetThumbnailUri(IResolverContext ctx, [Service] IBlobStorage blobStorage)
         {
             return (await blobStorage.ListObjects(StorageBuckets
-            .Value, StorageId.ToString(), false))
+            .Value, StorageId.ToString()))
                 .FirstOrDefault(x => x.Key.Contains("thumbnail"))?.Uri;
         }
 

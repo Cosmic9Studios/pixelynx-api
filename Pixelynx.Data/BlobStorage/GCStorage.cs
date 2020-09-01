@@ -28,10 +28,10 @@ namespace Pixelynx.Data.BlobStorage
         #endregion
 
         #region Public methods.
-        public async Task<BlobObject> GetObject(string bucket, string objectPath, bool signUrl = false)
+        public async Task<BlobObject> GetObject(string bucket, string objectPath)
         {
             var x = await client.GetObjectAsync(bucket, objectPath);
-            var url = signUrl ? await urlSigner.SignAsync(bucket, x.Name, TimeSpan.FromSeconds(15), HttpMethod.Get) : x.MediaLink;
+            var url = await urlSigner.SignAsync(bucket, x.Name, TimeSpan.FromSeconds(15), HttpMethod.Get);
             return new BlobObject
             {
                 Key = x.Name,
@@ -39,11 +39,11 @@ namespace Pixelynx.Data.BlobStorage
             };
         }
 
-        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "", bool signUrls = false)
+        public async Task<IEnumerable<BlobObject>> ListObjects(string bucket, string directory = "")
         {
             return await Task.Run(() => client.ListObjects(bucket, directory).Select(async x => 
             {
-                var url = signUrls ? await urlSigner.SignAsync(bucket, x.Name, TimeSpan.FromSeconds(15), HttpMethod.Get) : x.MediaLink;
+                var url = await urlSigner.SignAsync(bucket, x.Name, TimeSpan.FromSeconds(15), HttpMethod.Get);
                 return new BlobObject
                 {
                     Key = x.Name,
