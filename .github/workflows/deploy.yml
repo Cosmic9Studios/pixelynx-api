@@ -56,7 +56,7 @@ jobs:
     - name: Deploy service to Cloud Run
       uses: stefda/action-cloud-run@v1.0
       with:
-        image: gcr.io/pixelynx-staging/pixelynx:${{ steps.get_version.outputs.VERSION }}
+        image: gcr.io/pixelynx-staging/pixelynx-api:${{ steps.get_version.outputs.VERSION }}
         service: pixelynx-api
         project: pixelynx
         region: us-central1
