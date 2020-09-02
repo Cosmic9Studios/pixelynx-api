@@ -25,9 +25,10 @@ namespace Pixelynx.Logic.Helpers
         {
             using (var httpClient = new HttpClient())
             {
+                var vaultUri = Environment.GetEnvironmentVariable("VAULT_URI");
                 HttpRequestMessage serviceAccountRequest = new HttpRequestMessage
                 {
-                    RequestUri = new Uri("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://vault/my-iam-role&format=full"),
+                    RequestUri = new Uri($"http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience={vaultUri}/my-iam-role&format=full"),
                     Headers = { { "Metadata-Flavor", "Google" } }
                 };
 
