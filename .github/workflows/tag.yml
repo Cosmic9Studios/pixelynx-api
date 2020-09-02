@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-
     - name: Get the version
       id: get_version
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
@@ -31,6 +30,7 @@ jobs:
         service: pixelynx-api
         project: pixelynx-staging
         region: us-central1
+        env: ./staging.env
         service key: ${{ secrets.GCP_SERVICE_KEY_STAGING }}
     
 
