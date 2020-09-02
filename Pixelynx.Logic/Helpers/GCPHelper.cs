@@ -3,8 +3,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Iam.v1;
+using Google.Apis.Iam.v1.Data;
 using Google.Apis.Services;
 using Google.Cloud.Storage.V1;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Pixelynx.Logic.Helpers
 {
@@ -21,27 +24,48 @@ namespace Pixelynx.Logic.Helpers
             return credential;
         }
 
-        public static async Task<string> GetJwt()
+        public static async Task<string> GetJwt(string serviceAccountEmail)
+        {
+            var credential = await GetCredential();
+            IamService iamService = new IamService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential
+            });
+
+            System.TimeSpan timeDifference = DateTime.UtcNow.AddMinutes(15) - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            long unixEpochTime = System.Convert.ToInt64(timeDifference.TotalSeconds);
+
+            JObject obj = new JObject();
+            obj["sub"] = serviceAccountEmail; 
+            obj["aud"] = "vault/my-iam-role";
+            obj["exp"] = unixEpochTime;
+
+            string name = $"projects/-/serviceAccounts/{serviceAccountEmail}";
+            SignJwtRequest requestBody = new SignJwtRequest
+            {
+                Payload = obj.ToString(Formatting.None), 
+            };
+
+            ProjectsResource.ServiceAccountsResource.SignJwtRequest request = iamService.Projects.ServiceAccounts.SignJwt(requestBody, name);
+            SignJwtResponse response = await request.ExecuteAsync();
+
+            return response.SignedJwt;
+        }
+
+        public static async Task<UrlSigner> GetUrlSigner()
         {
             using (var httpClient = new HttpClient())
             {
-                var vaultUri = Environment.GetEnvironmentVariable("VAULT_URI");
                 HttpRequestMessage serviceAccountRequest = new HttpRequestMessage
                 {
-                    RequestUri = new Uri($"http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience={vaultUri}/my-iam-role&format=full"),
+                    RequestUri = new Uri("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email"),
                     Headers = { { "Metadata-Flavor", "Google" } }
                 };
 
                 HttpResponseMessage serviceAccountResponse = await httpClient.SendAsync(serviceAccountRequest).ConfigureAwait(false);
                 serviceAccountResponse.EnsureSuccessStatusCode();
-                return await serviceAccountResponse.Content.ReadAsStringAsync();
-            }
-        }
+                string serviceAccountId = await serviceAccountResponse.Content.ReadAsStringAsync();
 
-        public static async Task<UrlSigner> GetUrlSigner(string serviceAccountId)
-        {
-            using (var httpClient = new HttpClient())
-            {
                 // Create an IAM service client object using the default application credentials.
                 GoogleCredential iamCredential = await GoogleCredential.GetApplicationDefaultAsync();
                 iamCredential = iamCredential.CreateScoped(IamService.Scope.CloudPlatform);
